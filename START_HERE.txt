@@ -1,25 +1,18 @@
-MAXIMUM OUTPUT: ZERO V7 - COMPLETE MULTIPLAYER GAME
-================================================
+MAXIMUM OUTPUT: ZERO V7.1 — DOMAIN CRASH FIX
 
-This ZIP contains the WHOLE game, not just the HTML file.
+WHAT WAS FIXED
+Opening a Domain without 100 Awakening and 35 CE now fails safely.
+Countering a Domain or joining a three-way clash without 35 Awakening and 28 CE also fails safely.
+A failed Domain attempt leaves the active Domain/clash unchanged and does not spend resources.
+The Domain keypress is processed once, not twice. The round-start freeze now resets on rematches.
 
-1. Double-click this ZIP in Finder to extract it.
-2. Open the NEW FOLDER named Maximum_Output_Zero_V7_COMPLETE.
-3. You should see:
-   - package.json        (Node.js server settings)
-   - server.mjs          (actual multiplayer server)
-   - render.yaml         (Render hosting configuration)
-   - public/             (game folder)
-       - index.html      (game code, leave it inside public)
-   - README.md           (game instructions)
-   - CHANGELOG.md        (version changes)
-   - DEPLOY_ON_RENDER.md (hosting guide)
+HOW TO UPDATE YOUR EXISTING GITHUB + RENDER GAME
+1. Unzip this package and open the Maximum_Output_Zero_V7_COMPLETE folder.
+2. Open public, locate index.html.
+3. Replace the old public/index.html in your existing GitHub repository with this new index.html.
+4. Commit your change. Render should redeploy the existing service.
+5. Refresh the hosted game once Render shows Live.
 
-IMPORTANT: If you open index.html in a text editor, you will see HTML
-code. That is normal! You need to open the extracted FOLDER in Finder.
+All 6 characters, online multiplayer, Simple Domain, wagers, and 3-way barrier-damage clashes remain available.
 
-To update GitHub: upload package.json, server.mjs and render.yaml
-to the repository root. Open public in GitHub and replace its index.html
-with the new public/index.html. Your existing Render site should then redeploy.
-
-Do not upload the ZIP directly to GitHub as a single ZIP file.
+To play on a Mac server instead: open Terminal inside this folder and run npm start.

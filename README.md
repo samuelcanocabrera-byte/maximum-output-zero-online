@@ -1,3 +1,9 @@
+# V7.1 Domain Crash Fix
+
+Domain activation now fails silently and safely when the player has too little Cursed Energy or Awakening. Full Domain activation requires 100 Awakening and 35 CE. A Domain counter/clash requires 35 Awakening and 28 CE. Joining a 3-way clash requires the same 35 Awakening and 28 CE. All costs are checked before spending resources or changing the game state. The Domain button is processed once per keypress.
+
+All V7 gameplay systems and online multiplayer are preserved.
+
 # MAXIMUM OUTPUT: ZERO, Six Fighters Update (V7)
 
 A browser fighting game with **six playable characters**, local two- or three-player matches, and rooms for friends on separate Chromebooks. This is an updated version of the uploaded online-multiplayer game, not a separate simplified game.

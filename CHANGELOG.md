@@ -1,3 +1,12 @@
+# Version 7.1 | Domain Crash Safety Fix
+
+- Added centralized resource checks for Domain Expansions and Domain clashes.
+- Normal Domain activation requires full 100 Awakening and 35 CE.
+- Counter-Domain activation and 3-way clash participation require 35 Awakening and 28 CE.
+- When either resource is insufficient, pressing Domain does nothing. The existing Domain or clash continues unchanged.
+- Removed duplicate Domain input handling that could trigger conflicting state transitions during combat.
+- Preserved all six fighters, Simple Domain, existing wagers, barrier-damage clashes, and online multiplayer.
+
 # V7: Six Fighters + Simple Domain
 
 ## Added
