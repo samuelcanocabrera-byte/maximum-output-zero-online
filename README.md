@@ -1,4 +1,4 @@
-# MAXIMUM OUTPUT: ZERO V8.0 / ASCENSION
+# MAXIMUM OUTPUT: ZERO V8.1.1 / DOMAIN CLASH FIX
 
 A free, original browser-based anime-inspired 2D fighting game with six distinct fighters, selectable arenas, Domain Expansions, counters, juggle combos, original music and local/online multiplayer.
 
@@ -31,6 +31,9 @@ For a perfect-guard counter, press Guard just before contact, then Attack when C
 For phones/tablets, use landscape mode. Touch controls appear during fights. Local touch controls are for P1. Other friends should join through separate online devices.
 
 ## Domains
+
+V8.1.1 fixes the asymmetric freeze that occurred when Player 1 challenged Player 2 during the Domain activation cinematic. The clash loop now exits safely as soon as the challenge replaces the active Domain state.
+
 
 Domain activation: **100 Awakening, 35 Cursed Energy**. Joining a counter Domain clash during the response window: **35 Awakening, 28 Cursed Energy**. The game does not consume resources when a Domain action is ineligible. In a clash, the barriers collide for a short intro before the timed fight with virtual damage; real HP is frozen for the clash.
 

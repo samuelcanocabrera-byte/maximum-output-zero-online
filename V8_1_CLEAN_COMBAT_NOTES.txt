@@ -1,4 +1,4 @@
-MAXIMUM OUTPUT: ZERO V8.1 - CLEAN COMBAT UI
+MAXIMUM OUTPUT: ZERO V8.1.1 - DOMAIN CLASH CRASH FIX + CLEAN COMBAT UI
 
 This is a presentation-only update to V8 Ascension.
 
@@ -11,3 +11,5 @@ During a fight:
 Everything else, including all characters, abilities, music, arenas, touch controls, online rooms, and deployment steps, is carried over from V8.
 
 To deploy online: replace the prior V8 files with all files from this ZIP, including public/ and server.mjs.
+
+V8.1.1 FIX: If Player 2 activates a Domain and Player 1 challenges during the cinematic, the input loop stops as soon as the clash begins. This prevents a cleared Domain reference from being accessed on the next loop iteration.

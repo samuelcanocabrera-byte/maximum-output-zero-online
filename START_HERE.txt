@@ -1,4 +1,4 @@
-MAXIMUM OUTPUT: ZERO V8.0 / ASCENSION
+MAXIMUM OUTPUT: ZERO V8.1.1 / DOMAIN CLASH FIX
 ====================================
 
 THE FULL NEW GAME IS IN public/index.html AND public/music/.
@@ -42,4 +42,5 @@ NOTES:
   - Online mode still requires the server and internet/LAN connectivity.
   - Online rooms are HOST-SIMULATED. Network latency can affect reaction moves.
   - Browser audio starts after first interaction, by browser policy.
+  - V8.1.1 fixes the Player 1 challenge freeze when Player 2 activates a Domain.
   - Original V7.1 Domain resource safety rules are retained.

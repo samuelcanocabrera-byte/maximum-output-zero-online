@@ -1,5 +1,10 @@
 # Changelog
 
+## V8.1.1 Domain Clash Crash Fix
+- Fixed an asymmetric freeze when Player 1 challenged Player 2's Domain during its activation cinematic.
+- The Domain-input loop now snapshots the active Domain and exits immediately after handling a challenge, before the clash can clear that state.
+- Preserves the existing Domain cinematic, barrier collision, resource checks, and clash rules.
+
 ## V8.1 Clean Combat UI
 - Fewer floating combat labels. Regular hit damage is shown in health meters instead of a flood of numbers.
 - Key moments still have short, readable cues: parry, counter, Black Flash, finisher, launch, and resource limits.

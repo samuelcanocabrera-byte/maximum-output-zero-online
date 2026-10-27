@@ -1,6 +1,6 @@
 # Maximum Output: Zero, playing from different houses
 
-This V7.2 folder includes `public/music/` with four MP3 tracks. **Upload the whole music folder and the new `server.mjs` too.** This folder is ready for a GitHub repository and a Render **Web Service**. It is not already hosted.
+This V8.1.1 folder includes the Domain clash crash fix and `public/music/` with four MP3 tracks. **Upload the whole music folder and `server.mjs` too.** This folder is ready for a GitHub repository and a Render **Web Service**. It is not already hosted.
 
 ## A. Upload to GitHub
 

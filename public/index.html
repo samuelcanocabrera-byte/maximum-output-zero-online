@@ -149,7 +149,7 @@
   </section>
   <section class="stage" aria-label="2D fighting game"><canvas id="game" width="1360" height="765"></canvas><div id="screenLayer">
     <div class="overlay title-overlay" id="titleScreen" aria-label="Title screen">
-      <div class="title-content"><div class="title-eyebrow">ORIGINAL SCHOOL FIGHTER / V8.1 : CLEAN COMBAT</div>
+      <div class="title-content"><div class="title-eyebrow">ORIGINAL SCHOOL FIGHTER / V8.1.1 : DOMAIN CLASH FIX</div>
       <div class="title-sigil" aria-hidden="true"><span>零</span><i></i></div>
       <p class="title-supra">THE STRONGEST DECIDES THE RULES</p><h1>MAXIMUM<br><em>OUTPUT: ZERO</em></h1>
       <p class="title-sub">SIX FIGHTERS. FOUR BATTLEFIELDS. ONE FINAL DOMAIN.</p>
@@ -808,7 +808,21 @@ function updateDomain(dt){if(!domain)return;const d=domain;
 }
 function update(dt){if(phase!=='game'||paused)return;const real=dt;dt=clamp(dt,0,.042);frame+=dt;cameraKick=Math.max(0,cameraKick-dt*.44);if(clash){updateClash(dt);if(!clash||clash.intro>0){updateParticles(dt);return}}if(domainIntro){domainIntro.remaining=Math.max(0,domainIntro.remaining-dt);if(domainIntro.remaining<=0)domainIntro=null;}if(!clash&&!(domain&&domain.type===0))time=Math.max(0,time-dt);if(annTimer>0)annTimer-=dt;if(freeze>0){freeze-=dt;updateParticles(dt*.35);return}if(domainBurst>0)domainBurst-=dt;shakes*=Math.exp(-9*dt);if(shakes<.2)shakes=0;
  if(!clash)updateDomain(dt);
- if(domainIntro){if(domain&&domain.window>0)for(const p of players)if(p.id!==domain.owner&&tap(p,'domain')){if(down(p,'guard'))simpleDomainCast(p);else expand(p)}updateParticles(dt);return;}
+ if(domainIntro){
+  // A challenger can start a clash while the other fighter's Domain cinematic is still playing.
+  // expand() clears `domain` and `domainIntro` when the clash starts, so never keep
+  // iterating against the mutable global `domain` reference after handling that input.
+  const introDomain=domain;
+  if(introDomain&&introDomain.window>0){
+   for(const p of players){
+    if(domain!==introDomain||clash)break;
+    if(p.id===introDomain.owner||!tap(p,'domain'))continue;
+    if(down(p,'guard'))simpleDomainCast(p);else expand(p);
+    break; // One Domain input per frame; expand() may have replaced the whole Domain state.
+   }
+  }
+  updateParticles(dt);return;
+ }
  for(const p of players){for(const key of ['invuln','stun','attackAnim','attackCd','dashCd','dashTime','dashTrail','damageGlow','blockGlow','guardStart','diamondArmor','heartSnare','lastSkill','coolDown','chronal','ultFx','pose','kickAnim','lockedMove','selfEdge','selfBattery','selfAnchor','_evaded','simpleCd','rctLock','shieldTime','vectorBarrier','loopCharge','windCharge','zephyrWindow','constructTimer','armTimer','counterWindow','wallBounceCd','comboTimer','comboVisual'])p[key]=Math.max(0,(p[key]||0)-dt);
  if(p.comboTimer===0){p.comboHits=0;p.comboDamage=0;p.comboTarget=-1;}for(const key in p.cardCd)p.cardCd[key]=Math.max(0,p.cardCd[key]-dt);p.luck=clamp(p.luck+dt*(players.length===3?1.9:1.25),0,100);p.awakening=clamp(p.awakening+dt*.75,0,100);
  if(p.simpleDomain>0){p.simpleDomain=Math.max(0,p.simpleDomain-dt);p.ce=Math.max(0,p.ce-dt*1.8);if(p.ce===0)p.simpleDomain=0;}if(p.kind===3){if(p.constructTimer>0)p.triangles=Math.max(0,p.triangles-dt*(20/60));if(p.armTimer<=0)p.extraArms=0;if(p.extraArms>0)p.triangles=Math.max(0,p.triangles-dt*p.extraArms*(50/60));}if(p.ko){p.vx*=.93;continue}if(clash&&!clash.fighters.includes(p.id)){if(tap(p,'domain'))joinClash(p);if(!clash.fighters.includes(p.id)){p.vx=0;p.vy=0;continue}}if(domain&&domain.type===0&&!clash){p.vx=0;p.vy=0;p.guard=false;p.resistance=false;continue}p.ce=clamp(p.ce+dt*(p.cfg.energyRegen+(p.kind===1&&p.momentum>=100?2.5:0)-(p.kind===1?.4:0)),0,100);
