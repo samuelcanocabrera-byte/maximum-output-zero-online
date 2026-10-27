@@ -1,0 +1,25 @@
+MAXIMUM OUTPUT: ZERO V7.1: FULL SERVER + GAME ZIP
+
+THIS ZIP INCLUDES THE WHOLE ONLINE PROJECT, NOT JUST THE HTML.
+
+FILES:
+  package.json       Node.js setup
+  server.mjs         Online multiplayer server
+  render.yaml        Render hosting config
+  public/index.html  All 6 playable fighters and Domain clash CE crash fix
+  README.md / DEPLOY_ON_RENDER.md / CHANGELOG.md
+
+TO UPDATE YOUR EXISTING GITHUB REPOSITORY:
+1) Double-click the ZIP in Finder to extract it.
+2) Open the extracted folder. You should SEE package.json, server.mjs, render.yaml, and public/.
+3) Open your EXISTING GitHub repository.
+4) Upload the NEW package.json and server.mjs to the SAME folder as the old ones.
+5) Inside your GitHub repository's public/ folder, replace index.html with this ZIP's public/index.html.
+6) Commit changes. Render can deploy your latest commit automatically.
+
+IMPORTANT: Do NOT upload the .zip file to GitHub. GitHub does not automatically unpack ZIP files!
+IMPORTANT: Do NOT drag the outer folder into the repository if Render's Root Directory is blank.
+
+If your Render Root Directory is set to a special folder, put the same files within that folder.
+
+DOMAIN CLASH FIX: An insufficient CE/Awakening attempt fails safely without interrupting the Domain.

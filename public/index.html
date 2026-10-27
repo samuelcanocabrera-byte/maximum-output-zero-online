@@ -136,7 +136,7 @@
       <section class="guide-panel"><h3>PLAYER 3 <small>NUMPAD OR NUMBER ROW</small></h3>
       <div class="key-grid"><span><kbd>8</kbd> Jump / empowered skill</span><span><kbd>4</kbd> <kbd>6</kbd> Move</span><span><kbd>5</kbd> Crouch / alternate move</span><span><kbd>1</kbd> Strike / combo</span><span><kbd>2</kbd> Cursed technique</span><span><kbd>3</kbd> Hold guard</span><span><kbd>7</kbd> Card / clone / face</span><span><kbd>0</kbd> Domain (3+0 = Simple Domain)</span><span><kbd>9</kbd> Maximum technique</span><span><kbd>.</kbd> RCT / reversal</span><span><kbd>Enter</kbd> Dash / evade</span></div><p class="small-note">Keys work with numpad or number row. Enable Num Lock for normal numpad use. Shared keyboards may have ghosting limitations.</p></section>
     </div>
-    <div class="guide-how"><div><h3>HOW THE FIGHT WORKS</h3><p><b>Strike combos:</b> tap Attack to chain a <b>5-hit string</b>: jab, cross, hook, front kick, then finisher. Up + Attack launches; Down + Attack sweeps low. Different characters lean into that string differently, so Jin stays measured, Arata presses forward aggressively, and Shirogane snaps through faster motions. <b>Defense:</b> hold Guard to reduce damage; press just before a hit for a Just Guard. Dash through an enemy attack to evade and charge Awakening.</p><p><b>RCT:</b> press Heal with enough CE to restore health. Hold Down + Heal instead to perform your character's Cursed Technique Reversal (CTR). Techniques spend CE (blue meter), and the yellow Awakening meter fills through combat.</p></div><div class="clash-guide"><h3>NEW: INTERACTIVE DOMAIN CLASH</h3><p>A brief hand-sign cinematic plays for each character. Spend <b>100 Awakening + 35 CE</b> to start a Domain. The other player has a <b>2.7-second counter window</b>: press their Domain key with at least <b>35 Awakening + 28 CE</b> to challenge it. During the <b>12-second barrier fight</b>, move around the arena and land real punches, kicks, or Techniques. Each successful hit deals <b>virtual barrier damage</b> instead of reducing actual HP. Defend, dash, and combo like a normal fight. The player with the most <b>damage dealt</b> wins the Domain. Third player: press Domain within the first 3.2 seconds to join. Real HP stays frozen until the clash ends. Ties shatter the Domains!</p></div></div>
+    <div class="guide-how"><div><h3>HOW THE FIGHT WORKS</h3><p><b>Strike combos:</b> tap Attack to chain a <b>5-hit string</b>: jab, cross, hook, front kick, then finisher. Up + Attack launches; Down + Attack sweeps low. Different characters lean into that string differently, so Jin stays measured, Arata presses forward aggressively, and Shirogane snaps through faster motions. <b>Defense:</b> hold Guard to reduce damage; press just before a hit for a Just Guard. Dash through an enemy attack to evade and charge Awakening.</p><p><b>RCT:</b> press Heal with enough CE to restore health. Hold Down + Heal instead to perform your character's Cursed Technique Reversal (CTR). Techniques spend CE (blue meter), and the yellow Awakening meter fills through combat.</p></div><div class="clash-guide"><h3>NEW: INTERACTIVE DOMAIN CLASH</h3><p>A brief hand-sign cinematic plays for each character. Spend <b>100 Awakening + 35 CE</b> to start a Domain. The other player has a <b>2.7-second counter window</b>: press their Domain key with at least <b>35 Awakening + 28 CE</b> to challenge it. During the <b>12-second barrier fight</b>, move around the arena and land real punches, kicks, or Techniques. Each successful hit deals <b>virtual barrier damage</b> instead of reducing actual HP. Defend, dash, and combo like a normal fight. The player with the most <b>damage dealt</b> wins the Domain. Third player: press Domain within the first 3.2 seconds to join. Countering or joining needs 28 CE + 35 Awakening; if you lack either, the attempt safely fails and the active Domain stays intact. Real HP stays frozen until the clash ends. Ties shatter the Domains!</p></div></div>
     <div class="guide-fighters">
       <section class="guide-fighter jin"><h3>♠ KISARAGI JIN <small>HEAVENLY AXIOMS</small></h3><p><b>Q / U / 7:</b> cycle the eleven visible card choices, or click the wheel to select; hold Dash + Cycle to reverse. <b>Technique:</b> use selected card. Spades cut, Diamonds grant armor, Clubs store/release energy, Hearts tether targets, Aces have exceptional power, and Joker is a permanent-use 50/50 wager (two per fight). <b>Guard + Technique:</b> cast the selected card on yourself: Spades sharpen your fists, Diamonds reinforce your body, Clubs store incoming force, Hearts anchor you, Joker wagers to restore yourself. <b>Down + Guard + Technique:</b> Providence Siphon. <b>Down + RCT:</b> Inverse Decree. <b>Maximum:</b> Royal Flush. <b>Domain: Fated Misfortune:</b> All violence becomes impossible. Jin declares each of up to five perfectly matching stakes and confirms it with Attack. Every living fighter must possess the stake. Select with Left / Right (or Cycle) or click; Attack confirms. The roulette is immutably <b>90% house / 10% challengers</b>; neither Providence Siphon nor skills can influence it. Only the losing side forfeits its own stake. The house never steals the value. After five spins, the Domain closes.</p></section>
       <section class="guide-fighter arata"><h3>➜ ARATA MICHIZANE <small>MOMENTUM</small></h3><p><b>Momentum 0–200%:</b> successful hits and perfectly evaded strikes gain 10%; taking a hit loses 5%; standing still too long starts decay. Arata fights best while constantly advancing. <b>Technique:</b> Avalanche consumes Momentum for a long-range burst. <b>Up + Technique:</b> stronger Avalanche (greater cost). <b>Hold Guard + Technique:</b> Resistance dampens attacks while draining Momentum. <b>Down + RCT:</b> Inertia Reversal. <b>Maximum:</b> Overdrive temporarily reaches 300% power. <b>OVER OVERDRIVE:</b> rapidly tap Down three times (S / ↓ / 5) with <b>85 CE</b> to enter a stronger 6-second state. Once per match; causes 10-second burnout afterward. <b>Domain: Endless Horizon:</b> Arata points to the sky. A rainy forest and icy mountains appear. His Momentum instantly reaches 200% and <b>stays frozen</b> for the entire Domain, while opponents suffer escalating confusion, slowed movement and inevitable clarity pulses.</p></section>
@@ -391,21 +391,53 @@ function startCombatClash(ids){
  for(let i=0;i<ids.length;i++){const p=players[ids[i]];p.x=ids.length===2?(i===0?W*.29:W*.71):(i===0?W*.20:i===1?W*.78:W*.5);p.y=FLOOR;p.vx=0;p.vy=0;p.stun=0;p.attackCd=0;p.attackAnim=0;p.face=i%2===0?1:-1;p.invuln=.32;p.dashTime=0;}
  announce('DOMAIN CLASH','FIGHT! DAMAGE BREAKS THE BARRIER · REAL HP IS FROZEN',2.4,'#f3ffff');domainBurst=1.0;shakes=22;freeze=.08;splash(W/2,295,'#dff9ff',420);sound('domain');
 }
-function expand(p){
- if(p.ko||p.burnout>0)return;
- if(clash){joinClash(p);return}
- if(domain){
-  if(domain.owner===p.id||domain.window<=0||p.ce<28||p.awakening<35)return;
-  p.ce-=28;p.awakening-=35;startCombatClash([domain.owner,p.id]);return;
+// Domain safety gate: every activation route (cinematic counter, normal counter and
+// third-player entry) checks resources BEFORE deducting anything or changing barriers.
+const DOMAIN_COST={open:{ce:35,awakening:100},clash:{ce:28,awakening:35}};
+function domainFailure(p,message){
+ if(!p||p.ko)return false;
+ const now=performance.now();
+ if(now-(p.lastDomainFailAt??-2000)>850){
+  p.lastDomainFailAt=now;
+  popup(p.x,p.y-175,message,'#ffc6a7',14);
  }
- if(p.stun>0||p.awakening<100||p.ce<35)return;
- p.awakening=0;p.ce-=35;beginDomain(p);
+ return false;
+}
+function canPayDomain(p,cost){
+ if(!p||p.ko||p.burnout>0)return false;
+ if(!Number.isFinite(p.ce)||p.ce<cost.ce)
+  return domainFailure(p,`DOMAIN FAILED · NEED ${cost.ce} CE (${Math.max(0,Math.floor(Number(p.ce)||0))})`);
+ if(!Number.isFinite(p.awakening)||p.awakening<cost.awakening)
+  return domainFailure(p,`DOMAIN FAILED · NEED ${cost.awakening} AWAKENING`);
+ return true;
+}
+function payDomain(p,cost){p.ce-=cost.ce;p.awakening-=cost.awakening;}
+function expand(p){
+ if(!p||p.ko||p.burnout>0)return false;
+ if(clash)return joinClash(p);
+ if(domain){
+  if(domain.owner===p.id||domain.window<=0)return false;
+  if(!canPayDomain(p,DOMAIN_COST.clash))return false;
+  const owner=players[domain.owner];
+  // If the owning player or Domain became invalid, leave the current Domain intact.
+  if(!owner||owner.ko)return false;
+  payDomain(p,DOMAIN_COST.clash);
+  startCombatClash([owner.id,p.id]);
+  return true;
+ }
+ if(p.stun>0||!canPayDomain(p,DOMAIN_COST.open))return false;
+ payDomain(p,DOMAIN_COST.open);
+ beginDomain(p);
+ return true;
 }
 function joinClash(p){
- if(!clash||clash.fighters.includes(p.id)||p.ko||clash.joinWindow<=0||p.ce<28||p.awakening<35||p.burnout>0)return;
- p.ce-=28;p.awakening-=35;clash.fighters.push(p.id);clash.scores[p.id]=0;clash.hits[p.id]=0;
+ if(!clash||!p||clash.fighters.includes(p.id)||p.ko||clash.joinWindow<=0||p.burnout>0)return false;
+ if(!canPayDomain(p,DOMAIN_COST.clash))return false;
+ payDomain(p,DOMAIN_COST.clash);
+ clash.fighters.push(p.id);clash.scores[p.id]=0;clash.hits[p.id]=0;
  p.x=W/2;p.y=FLOOR;p.vy=0;p.vx=0;p.stun=0;p.attackCd=0;p.invuln=.3;
  announce('TRIPLE DOMAIN CLASH',`${p.cfg.short} ENTERS THE BARRIER WAR`,1.6,p.cfg.glow);splash(W/2,345,p.cfg.glow,320);sound('domain');
+ return true;
 }
 function updateClash(dt){
  if(!clash)return;
@@ -526,15 +558,15 @@ function update(dt){if(phase!=='game'||paused)return;const real=dt;dt=clamp(dt,0
  if(domainIntro){if(domain&&domain.window>0)for(const p of players)if(p.id!==domain.owner&&tap(p,'domain')){if(down(p,'guard'))simpleDomainCast(p);else expand(p)}updateParticles(dt);return;}
  for(const p of players){for(const key of ['invuln','stun','attackAnim','attackCd','dashCd','dashTime','dashTrail','damageGlow','blockGlow','guardStart','diamondArmor','heartSnare','lastSkill','coolDown','chronal','ultFx','pose','kickAnim','lockedMove','selfEdge','selfBattery','selfAnchor','_evaded','simpleCd','rctLock','shieldTime','vectorBarrier','loopCharge','windCharge','zephyrWindow','constructTimer','armTimer'])p[key]=Math.max(0,(p[key]||0)-dt);
  for(const key in p.cardCd)p.cardCd[key]=Math.max(0,p.cardCd[key]-dt);p.luck=clamp(p.luck+dt*(players.length===3?1.9:1.25),0,100);p.awakening=clamp(p.awakening+dt*.75,0,100);
- if(p.simpleDomain>0){p.simpleDomain=Math.max(0,p.simpleDomain-dt);p.ce=Math.max(0,p.ce-dt*1.8);if(p.ce===0)p.simpleDomain=0;}if(p.kind===3){if(p.constructTimer>0)p.triangles=Math.max(0,p.triangles-dt*(20/60));if(p.armTimer<=0)p.extraArms=0;if(p.extraArms>0)p.triangles=Math.max(0,p.triangles-dt*p.extraArms*(50/60));}if(p.ko){p.vx*=.93;continue}if(clash&&!clash.fighters.includes(p.id)){if(tap(p,'domain'))joinClash(p);if(!clash.fighters.includes(p.id)){p.vx=0;p.vy=0;continue}}if(domain&&domain.type===0&&!clash){p.vx=0;p.vy=0;p.guard=false;p.resistance=false;continue}p.ce=clamp(p.ce+dt*(p.cfg.energyRegen+(p.kind===1&&p.momentum>=100?2.5:0)-(p.kind===1?.4:0)),0,100);
+ if(p.simpleDomain>0){p.simpleDomain=Math.max(0,p.simpleDomain-dt);p.ce=Math.max(0,p.ce-dt*1.8);if(p.ce===0)p.simpleDomain=0;}if(p.kind===3){if(p.constructTimer>0)p.triangles=Math.max(0,p.triangles-dt*(20/60));if(p.armTimer<=0)p.extraArms=0;if(p.extraArms>0)p.triangles=Math.max(0,p.triangles-dt*p.extraArms*(50/60));}if(p.ko){p.vx*=.93;continue}if(clash&&!clash.fighters.includes(p.id)){if(tap(p,'domain'))joinClash(p);if(!clash.fighters.includes(p.id)){p.vx=0;p.vy=0;continue}}if(domain&&domain.type===0&&!clash){if(tap(p,'domain')&&domain.owner!==p.id&&domain.window>0&&!down(p,'guard'))expand(p);if(domain&&domain.type===0&&!clash){p.vx=0;p.vy=0;p.guard=false;p.resistance=false;continue}}p.ce=clamp(p.ce+dt*(p.cfg.energyRegen+(p.kind===1&&p.momentum>=100?2.5:0)-(p.kind===1?.4:0)),0,100);
  if(p.burnout>0)p.burnout=Math.max(0,p.burnout-dt);
  if(p.superTime>0){p.superTime=Math.max(0,p.superTime-dt);p.momentum=200;p.overOverTime=Math.max(0,p.overOverTime-dt);if(p.superTime===0){p.momentum=0;p.burnout=p.overOverUsed?10:8;p.overOverTime=0;p.ultimateLock=true;popup(p.x,p.y-151,'TECHNIQUE BURNOUT','#76b5e6',15)}}
  p.guard=down(p,'guard')&&p.stun<=0&&p.dashTime<=0;p.resistance=false;if(p.guard&&p.guardStart<=0&&tap(p,'guard'))p.guardStart=.15;
  if(p.kind===1&&(!domain||domain.owner!==p.id)&&p.superTime<=0){p.stale+=dt;if(p.stale>2.5&&Math.abs(p.vx)<80)giveMomentum(p,-dt*7)}
  if(p.kind===2){p.clones=p.clones.filter(c=>c.hits>0);if(p.cloneWave>0)p.cloneWave-=dt;else p.clones=[];for(const c of p.clones){c.phase+=dt*1.5;c.x=p.x+Math.cos(c.phase)*85}}
  if(p.kind===0&&p.clubCharge>0)p.clubCharge=Math.min(220,p.clubCharge+dt*9);
- const noViolence=!!(domain&&domain.type===0&&!clash);if(tap(p,'domain')&&domain&&domain.owner!==p.id&&domain.window>0&&!down(p,'guard'))expand(p);if(!noViolence&&tap(p,'dash'))dash(p);if(tap(p,'cycle'))cycle(p);
- if(!noViolence&&!clash&&tap(p,'super'))ultimate(p);if(!noViolence&&tap(p,'domain')){if(down(p,'guard'))simpleDomainCast(p);else if(!clash)expand(p);else joinClash(p);}if(!noViolence&&!clash&&tap(p,'rct'))healOrReversal(p);
+ const noViolence=!!(domain&&domain.type===0&&!clash);if(!noViolence&&tap(p,'dash'))dash(p);if(tap(p,'cycle'))cycle(p);
+ if(!noViolence&&!clash&&tap(p,'super'))ultimate(p);if(tap(p,'domain')){if(down(p,'guard')){if(!noViolence)simpleDomainCast(p)}else if(!noViolence||(domain&&domain.window>0))expand(p)}if(!noViolence&&!clash&&tap(p,'rct'))healOrReversal(p);
  const guardSkill=down(p,'guard')&&down(p,'skill');if(!noViolence&&guardSkill){if(p.kind===1){p.resistance=p.momentum>0;if(p.resistance){p.momentum=Math.max(0,p.momentum-dt*20);p.ce=Math.max(0,p.ce-dt*.3)}}else if(tap(p,'skill')){if(clash&&p.kind===2){popup(p.x,p.y-149,'REWIND SEALED DURING CLASH',p.cfg.glow,11)}else if(p.kind===0&&!down(p,'down'))useCard(p,true);else guardSpecial(p)}}else if(!noViolence&&tap(p,'skill'))useSkill(p);
  if(!noViolence&&tap(p,'attack'))attack(p);
  let move=(down(p,'right')?1:0)-(down(p,'left')?1:0);if(p.stun>0)move=0;if(p.guard)move*=.38;if(p.heartSnare>0)move*=.18;
