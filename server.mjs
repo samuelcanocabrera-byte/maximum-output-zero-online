@@ -21,7 +21,7 @@ function publishLobby(r){publish(r,'lobby',roomView(r))}
 function session(body){const r=rooms.get(String(body.room||'').trim().toUpperCase());if(!r)return null;const i=r.members.findIndex(m=>m&&m.token===body.token);if(i<0)return null;return {r,i,m:r.members[i]}}
 async function bodyJSON(req,limit=130000){let chunks=[],total=0;for await(const chunk of req){total+=chunk.length;if(total>limit)throw new Error('Message too large');chunks.push(chunk)}return JSON.parse(Buffer.concat(chunks).toString('utf8')||'{}')}
 function safeName(n){return String(n||'Sorcerer').replace(/[<>\r\n]/g,'').trim().slice(0,22)||'Sorcerer'}
-function validChar(v){return Number.isInteger(v)&&v>=0&&v<=2}
+function validChar(v){return Number.isInteger(v)&&v>=0&&v<=5}
 function no(res,msg,status=400){json(res,status,{error:msg})}
 function disconnectStream(r,i,res){const m=r.members[i];if(m?.stream===res){m.stream=null;publishLobby(r)}}
 async function api(req,res,url){

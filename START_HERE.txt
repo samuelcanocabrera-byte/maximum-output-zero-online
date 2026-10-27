@@ -1,0 +1,25 @@
+MAXIMUM OUTPUT: ZERO V7 - COMPLETE MULTIPLAYER GAME
+================================================
+
+This ZIP contains the WHOLE game, not just the HTML file.
+
+1. Double-click this ZIP in Finder to extract it.
+2. Open the NEW FOLDER named Maximum_Output_Zero_V7_COMPLETE.
+3. You should see:
+   - package.json        (Node.js server settings)
+   - server.mjs          (actual multiplayer server)
+   - render.yaml         (Render hosting configuration)
+   - public/             (game folder)
+       - index.html      (game code, leave it inside public)
+   - README.md           (game instructions)
+   - CHANGELOG.md        (version changes)
+   - DEPLOY_ON_RENDER.md (hosting guide)
+
+IMPORTANT: If you open index.html in a text editor, you will see HTML
+code. That is normal! You need to open the extracted FOLDER in Finder.
+
+To update GitHub: upload package.json, server.mjs and render.yaml
+to the repository root. Open public in GitHub and replace its index.html
+with the new public/index.html. Your existing Render site should then redeploy.
+
+Do not upload the ZIP directly to GitHub as a single ZIP file.
