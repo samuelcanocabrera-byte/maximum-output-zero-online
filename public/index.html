@@ -149,7 +149,7 @@
   </section>
   <section class="stage" aria-label="2D fighting game"><canvas id="game" width="1360" height="765"></canvas><div id="screenLayer">
     <div class="overlay title-overlay" id="titleScreen" aria-label="Title screen">
-      <div class="title-content"><div class="title-eyebrow">ORIGINAL SCHOOL FIGHTER / V8.0 : ASCENSION</div>
+      <div class="title-content"><div class="title-eyebrow">ORIGINAL SCHOOL FIGHTER / V8.1 : CLEAN COMBAT</div>
       <div class="title-sigil" aria-hidden="true"><span>零</span><i></i></div>
       <p class="title-supra">THE STRONGEST DECIDES THE RULES</p><h1>MAXIMUM<br><em>OUTPUT: ZERO</em></h1>
       <p class="title-sub">SIX FIGHTERS. FOUR BATTLEFIELDS. ONE FINAL DOMAIN.</p>
@@ -217,8 +217,8 @@
       <section class="guide-fighter arashi"><h3>༄ ARASHI <small>DISASTER WIND</small></h3><p><b>Technique:</b> Tempest compressed-air blades. <b>Down + Technique:</b> Repelling Monsoon. <b>Guard + Technique:</b> Storm Veil. <b>Cycle:</b> Gale Step. <b>Maximum:</b> Zephyr charges a precision strike; hit with Attack within five seconds or the charge disappears. <b>Domain:</b> Eye of the Silent Hurricane progressively drains CE and mobility.</p></section>
     </div>
     <div class="guide-footer"><b>SIMPLE DOMAIN:</b> Every fighter holds Guard and presses Domain to create a small defensive barrier for 3.3 seconds. Costs 24 CE with a 9.5-second cooldown. Cancels sure-hit attacks but does not break Jin's no-violence wager rules or automatically win Domain clashes.<br><b>JIN SELF-CARDS:</b> hold Guard + Technique to put the currently chosen card on Jin himself; Down + Guard + Technique activates Providence Siphon. <b>ARATA OVER OVERDRIVE:</b> tap Down three times within 1.05 seconds when CE is at least 85. Lasts 6 seconds, once per match, with a 10-second burnout. <b>DOMAIN CLASH:</b> 12 seconds of real movement and strikes, virtual damage only, largest total dealt wins. All actual HP stays frozen. <b>JIN DOMAIN WAGERS:</b> Once the rules appear, Jin chooses a stake with his Left / Right or Cycle key, or clicks one of five wager cards in the arena. Attack or Domain confirms. The wheel spins for each bet. Nonviolence is absolute, including projectiles already on screen. The bet is automatically mirrored on all living players in 2P or 3P. The result is 90% House / 10% challengers, independent of luck. Five spins closes the Domain. <b>ARATA:</b> impossible-to-dodge confusion pulses, Momentum locked at 200%. <b>SHIROGANE:</b> unavoidable prism rays and reflected Luminal Lash attacks.<br><br>Online play: Every player uses the Player 1 (WASD, F/G/H) controls on their OWN Chromebook. To start an online game, create a room, share its link, then select characters and ready up. Local multiplayer is best on a full keyboard. Use <b>ESC</b> to pause. All special costs and time limits are shortened from the character lore to keep individual matches playable.</div>
+    <div class="live-help"><div class="live-help-grid" id="liveHelpGrid"></div></div>
   </div>
-  <div class="live-help"><div class="live-help-grid" id="liveHelpGrid"></div></div>
 </div>
 
 <div id="netOverlay" class="hidden" role="dialog" aria-label="Online multiplayer lobby" aria-modal="true">
@@ -298,7 +298,7 @@ function getOptions(){el('selectors').innerHTML='';for(let i=0;i<mode;i++){const
 document.querySelectorAll('.fighter').forEach((card,i)=>{card.tabIndex=0;card.setAttribute('role','button');const choose=()=>{selected[focusedSlot]=i;const label=el('slot'+focusedSlot);if(label)label.textContent=roster[i].name;refreshRosterSelection();sound('card')};card.addEventListener('click',choose);card.addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='Space'){e.preventDefault();choose()}})});
 el('mode2').addEventListener('click',()=>{mode=2;focusedSlot=0;el('mode2').classList.add('active');el('mode3').classList.remove('active');getOptions()});el('mode3').addEventListener('click',()=>{mode=3;focusedSlot=0;el('mode3').classList.add('active');el('mode2').classList.remove('active');getOptions()});getOptions();
 function player(i,id){const cfg=roster[id];return {id:i,kind:id,cfg,map:maps[i],x:(i===0?275:i===1?1080:676),y:FLOOR,vx:0,vy:0,face:i===1?-1:1,w:38,h:100,hp:cfg.hp,maxHp:cfg.hp,ce:100,awakening:0,momentum:0,guard:false,resistance:false,guardStart:0,invuln:0,stun:0,attackAnim:0,attackCd:0,attackCount:0,lastAttack:0,dashCd:0,dashTime:0,dashTrail:0,damageGlow:0,blockGlow:0,superTime:0,burnout:0,blackStreak:0,lastBlack:-100,snapshot:null,clones:[],cloneWave:0,cardIndex:0,cardCd:{},jokers:2,luck:30,clubCharge:0,heartSnare:0,diamondArmor:0,domainTimer:0,ko:false,hitCount:0,dodgeCount:0,objective: 'Defeat the opposition',goal60:60,stale:0,overdriveUsed:false,ultimateLock:false,lastSkill:0,coolDown:0,pose:0,step:0,ring:null,chronal:0,ultFx:0,comboFlash:0,lockedMove:0,queuedMove:0,queuedTechnique:0,domainConfusion:0,attackStyle:'jab',kickAnim:0,selfEdge:0,selfBattery:0,selfAnchor:0,overOverTime:0,overOverUsed:false,downTaps:[],downHint:0,simpleDomain:0,simpleCd:0,triangles:8000,construct:0,constructTimer:0,extraArms:0,armTimer:0,trapX:null,shieldTime:0,vectorBarrier:0,siphons:10,loopCharge:0,windCharge:0,zephyrWindow:0,zephyrUsed:false,rctLock:0,gravityTag:0,comboHits:0,comboTimer:0,comboDamage:0,counterWindow:0,airJuggle:0,wallBounceCd:0,comboTarget:-1,comboVisual:0};}
-function start(){document.body.classList.add('playing');domainIntro=null;players=[];for(let i=0;i<mode;i++)players.push(player(i,selected[i]));players.forEach(p=>{p.objective=`DEFEAT ${players.filter(e=>e!==p).map(e=>e.cfg.short).join(' + ')}`});projectiles=[];particles=[];effects=[];popups=[];held.clear();pressed.clear();touchHeld.clear();touchPressed.clear();domain=null;clash=null;domainIntro=null;domainBurst=0;announcer=null;annTimer=0;freeze=0;shakes=0;time=150;round=1;phase='game';paused=false;lastWinner=-1;MAIN.classList.add('hidden');el('titleScreen').classList.add('hidden');el('arenaScreen').classList.add('hidden');END.classList.add('hidden');HELP.classList.remove('show');el('helpButton').textContent='⌨ CONTROLS';window.scrollTo({top:0,behavior:'instant'});el('stateLabel').textContent=mode===2?'2 PLAYER DUEL':'3 PLAYER FREE-FOR-ALL';el('statusHint').textContent=mode===3?'P1 WASD + F/G/H  |  P2 ARROWS + J/K/L  |  P3 NUMPAD or DIGITS + 1/2/3':'P1 WASD + F/G/H  |  P2 ARROWS + J/K/L  |  Open CONTROLS for techniques';el('pauseButton').textContent='Ⅱ PAUSE';announce('ROUND 01',ARENA_NAMES[arenaIndex]+' · BEGIN!',2.1,'#f1faff');refreshLiveHelp();sound('domain')}
+function start(){document.body.classList.add('playing');domainIntro=null;players=[];for(let i=0;i<mode;i++)players.push(player(i,selected[i]));players.forEach(p=>{p.objective=`DEFEAT ${players.filter(e=>e!==p).map(e=>e.cfg.short).join(' + ')}`});projectiles=[];particles=[];effects=[];popups=[];held.clear();pressed.clear();touchHeld.clear();touchPressed.clear();domain=null;clash=null;domainIntro=null;domainBurst=0;announcer=null;annTimer=0;freeze=0;shakes=0;time=150;round=1;phase='game';paused=false;lastWinner=-1;MAIN.classList.add('hidden');el('titleScreen').classList.add('hidden');el('arenaScreen').classList.add('hidden');END.classList.add('hidden');HELP.classList.remove('show');el('helpButton').textContent='⌨ CONTROLS';window.scrollTo({top:0,behavior:'instant'});el('stateLabel').textContent=mode===2?'2 PLAYER DUEL':'3 PLAYER FREE-FOR-ALL';el('statusHint').textContent='Full moves and character tips in CONTROLS';el('pauseButton').textContent='Ⅱ PAUSE';announce('ROUND 01',ARENA_NAMES[arenaIndex]+' · BEGIN!',2.1,'#f1faff');refreshLiveHelp();sound('domain')}
 function showMenuPage(page){menuPage=page;const onMenu=phase==='menu';el('titleScreen').classList.toggle('hidden',!onMenu||page!=='title');MAIN.classList.toggle('hidden',!onMenu||page!=='roster');el('arenaScreen').classList.toggle('hidden',!onMenu||page!=='arena');}
 function showArena(){if(phase!=='menu')return;showMenuPage('arena');}
 function showRoster(){if(phase!=='menu')return;showMenuPage('roster');}
@@ -398,7 +398,46 @@ function tap(p,k){
 function announce(top,bottom,t=1.5,col='#e5f5ff'){announcer={top,bottom,col};annTimer=t}
 function emission(x,y,c,n=9,power=100,life=.42){for(let i=0;i<n;i++){const theta=rnd(0,TAU),speed=rnd(35,power);particles.push({x,y,vx:Math.cos(theta)*speed,vy:Math.sin(theta)*speed,life:rnd(life*.5,life),max:life,c,r:rnd(2,5),kind:Math.random()<.2?'line':'dot'})}}
 function splash(x,y,c,r=55){effects.push({kind:'ring',x,y,r:8,target:r,c,life:.37,max:.37});emission(x,y,c,14,220,.44)}
-function popup(x,y,txt,c='#fff',size=16){popups.push({x,y,txt,c,size,life:1,max:1,vx:rnd(-12,12),vy:-58})}
+// Fight text deliberately has a very small visual vocabulary. The full move list stays in Controls.
+let lastEssentialPopup=0;
+function popup(x,y,message,c='#fff',size=16){
+ const raw=String(message).toUpperCase();
+ let label='',priority=1;
+ if(/^\d+(?:\.\d+)?$/.test(raw)||raw==='GUARD'||raw.includes('HIT COMBO'))return; // Health and combo meters already communicate these.
+ if(raw.includes('BLACK FLASH')){label='BLACK FLASH';priority=3}
+ else if(raw.includes('COUNTER BREAK')){label='COUNTER!';priority=3}
+ else if(raw.startsWith('PARRY')){label='PARRY!';priority=3}
+ else if(raw.includes('WALL BOUNCE')){label='WALL BOUNCE';priority=2}
+ else if(raw.includes('HEAVY FINISH')){label='FINISHER!';priority=2}
+ else if(raw.includes('AIR LAUNCH')){label='LAUNCH';priority=2}
+ else if(raw.includes('SIMPLE DOMAIN')){label=raw.includes('NULLIF')?'BLOCKED':'SIMPLE DOMAIN';priority=2}
+ else if(raw.includes('NEEDS')||raw.includes('UNAVAILABLE')||raw.includes('DEPLETED')||raw.includes('ON COOLDOWN')||raw.includes('LOCKED')||raw.includes('SEALED')){
+  if(raw.includes('DOMAIN NEEDS'))label='NEED 100 AWK + 35 CE';
+  else if(raw.includes('CLASH NEEDS'))label='NEED 35 AWK + 28 CE';
+  else if(raw.includes('85 CE'))label='NEED 85 CE';
+  else if(raw.includes('70 AWAKENING'))label='NEED 70 AWK';
+  else if(raw.includes('COOLDOWN'))label='ON COOLDOWN';
+  else if(raw.includes('BURNOUT'))label='BURNOUT';
+  else if(raw.includes('SEALED'))label='SEALED';
+  else label='NOT READY';
+  priority=2;
+ }
+ else if(raw.startsWith('RCT +')){label=raw;priority=1}
+ else if(raw.includes('MOMENT CAPTURE')){label=raw.includes('REWIND')?'REWIND':'SAVED';priority=1}
+ else if(raw.includes('RECONSTRUCT')){label=raw.replace('RECONSTRUCT · ','');priority=1}
+ else if(raw.includes('JOKER')&&raw.includes('MIRACLE')){label='MIRACLE';priority=2}
+ else if(raw.includes('BACKLASH')){label='BACKLASH';priority=2}
+ else if(raw.includes('FORFEIT')){label=raw.replace('FORFEIT: ','-');priority=2}
+ else return; // No repeated technique narration over the characters.
+ if(domainIntro||clash&&clash.intro>0)return;
+ const now=performance.now();
+ if(priority<3&&now-lastEssentialPopup<230)return;
+ if(popups.some(p=>p.txt===label&&p.life>.30))return;
+ if(priority>=2)lastEssentialPopup=now;
+ // At most two brief messages, with no tiny multiline text over the arena.
+ if(popups.length>=2){let i=popups.findIndex(p=>p.priority<priority);if(i===-1&&priority<3)return;popups.splice(Math.max(0,i),1)}
+ popups.push({x:clamp(x,115,W-115),y:clamp(y,175,FLOOR-65),txt:label,c,size:priority===3?20:13,priority,life:priority===3?.72:.52,max:priority===3?.72:.52,vx:0,vy:-36});
+}
 function layerSplash(color,n){for(let i=0;i<n;i++)emission(rnd(40,W-40),rnd(80,FLOOR),color,1,rnd(100,280),rnd(.4,1))}
 function cardWheelCenter(p){return {x:p.id===0?117:p.id===1?1243:684,y:670}}
 function selectCard(p,d){if(p.kind!==0)return;let id=p.cardIndex;for(let i=0;i<cards.length;i++){id=(id+cards.length+d)%cards.length;if(!p.cardCd[id]||(p.cardCd[id]<=0&&!(cards[id].type==='joker'&&p.jokers<=0))){p.cardIndex=id;break}}sound('card');const c=cards[p.cardIndex];popup(p.x,p.y-150,`${c.s} ${c.r} / ${c.name}`,p.cfg.glow,13)}
@@ -725,15 +764,13 @@ function wagerHit(x,y){if(!domain||domain.type!==0||domain.window>0||domain.intr
 canvas.addEventListener('pointerdown',e=>{if(net.active&&!net.host)return;if(phase!=='game'||paused)return;const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;wagerHit(x,y)});
 function drawClashScene(){
  if(!clash)return;const c=clash,n=c.fighters.length;
- ctx.save();rounded(170,151,W-340,119,10,'#071125e8');ctx.strokeStyle='#9de4ff77';ctx.lineWidth=2;ctx.strokeRect(170,151,W-340,119);
- glow(W/2,205,240,'#b6ebff',.18);
- txt(n===3?'THREE-WAY DOMAIN CLASH':'DOMAIN CLASH · BARRIER FIGHT',W/2,175,22,'#eafbff','center',1000);
- txt('LAND REAL HITS · ONLY VIRTUAL DAMAGE COUNTS · HP FROZEN',W/2,200,12,'#c3d7ed','center',900);
- const width=n===2?410:290,start=(W-(n*width+Math.max(0,n-1)*8))/2,maxScore=Math.max(80,...c.fighters.map(id=>c.scores[id]||0));
- c.fighters.forEach((id,i)=>{const p=players[id],bx=start+i*(width+8),y=221;rounded(bx,y,width,18,5,'#1b2a40');rounded(bx,y,Math.max(3,width*(c.scores[id]||0)/maxScore),18,5,p.cfg.color);txt(`P${id+1} ${p.cfg.short}  ${Math.round(c.scores[id]||0)} DMG`,bx+7,y+9,10,'#eafaff','left',950)});
- rounded(W/2-104,277,208,34,8,'#0e2342e9');txt(`${c.life.toFixed(1)}s`,W/2,294,22,'#ffffff','center',1000);
- if(n<3&&c.joinWindow>0)txt(`THIRD PLAYER: PRESS DOMAIN TO JOIN (${c.joinWindow.toFixed(1)}s)`,W/2,326,13,'#a3e9ff','center',950);
- rounded(225,H-95,910,37,8,'#071125c4');txt('MOVE · DASH · GUARD · STRIKE · TECHNIQUE   |   HITS SCORE BARRIER DAMAGE   |   NO HP LOST',W/2,H-76,13,'#e1f2ff','center',900);
+ ctx.save();rounded(238,149,W-476,114,9,'#071125dd');
+ txt('DOMAIN CLASH',W/2,173,23,'#eafbff','center',1000);
+ txt('LAND HITS TO WIN · HP SAFE',W/2,195,12,'#c3d7ed','center',850);
+ const width=n===2?385:270,start=(W-(n*width+Math.max(0,n-1)*8))/2,maxScore=Math.max(80,...c.fighters.map(id=>c.scores[id]||0));
+ c.fighters.forEach((id,i)=>{const p=players[id],bx=start+i*(width+8),y=219;rounded(bx,y,width,18,5,'#1b2a40');rounded(bx,y,Math.max(3,width*(c.scores[id]||0)/maxScore),18,5,p.cfg.color);txt(`P${id+1} · ${Math.round(c.scores[id]||0)}`,bx+7,y+9,11,'#eafaff','left',950)});
+ rounded(W/2-62,267,124,33,8,'#0e2342df');txt(`${c.life.toFixed(1)}s`,W/2,283,20,'#ffffff','center',1000);
+ if(mode===3&&n<3&&c.joinWindow>0)txt(`P3: DOMAIN TO JOIN · ${c.joinWindow.toFixed(1)}s`,W/2,315,12,'#a3e9ff','center',900);
  ctx.restore();
 }
 function prettyKey(code){return ({KeyF:'F',KeyG:'G',KeyE:'E',KeyJ:'J',KeyK:'K',KeyO:'O',Numpad1:'1',Numpad2:'2',Numpad0:'0'})[code]||code}
@@ -1066,22 +1103,19 @@ function drawBars(){// HUD strips with health, CE, Awakening & personal meters
  for(const p of players){let [x,y,w]=positions[p.id],c=p.cfg,ratio=p.hp/p.maxHp,rev=p.id===1&&mode===2;
  rounded(x,y,w,118,10,'#080f1cdb');ctx.strokeStyle=colorAlpha(c.color,.48);ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,w-1,118);
  rounded(x+11,y+11,57,57,8,colorAlpha(c.color,.2));txt(icons[p.kind],x+39,y+39,39,c.glow,'center',1000);
- txt(`P${p.id+1}  ${c.name.toUpperCase()}`,x+78,y+22,mode===3?13:16,'#f6f9ff','left',1000);txt(c.desc,x+79,y+43,10,c.color,'left',900);
+ txt(`P${p.id+1}  ${c.name.toUpperCase()}`,x+78,y+29,mode===3?13:16,'#f6f9ff','left',1000);
  rounded(x+78,y+57,w-91,16,3,'#322336');const barW=(w-91)*ratio;if(barW>1)rounded(x+78,y+57,barW,16,3,ratio<.3?'#f95c84':c.color);txt(`${Math.round(p.hp)} / ${p.maxHp}`,x+w-18,y+64,11,'#f5f7fe','right',900);
- rounded(x+13,y+86,w*.42,6,2,'#1a3550');rounded(x+13,y+86,w*.42*p.ce/100,6,2,'#69d6f7');rounded(x+23+w*.42,y+86,w*.42,6,2,'#30254c');rounded(x+23+w*.42,y+86,w*.42*p.awakening/100,6,2,'#b798ff');txt('CURSED ENERGY',x+13,y+103,9,'#7fcbe3','left',800);txt('AWAKENING',x+23+w*.42,y+103,9,'#c0aeff','left',800);
- if(p.kind===1){rounded(x+7,y+122,w-14,8,3,'#11243a');rounded(x+7,y+122,(w-14)*p.momentum/200,8,3,p.superTime>0?'#f3fbff':'#6ac8ff');txt(`MOMENTUM ${Math.round(p.superTime>0?300:p.momentum)}%  / 200%`,x+12,y+140,11,'#9bd6ff','left',850);if(p.overOverTime>0)txt(`OVER OVERDRIVE ${p.overOverTime.toFixed(1)}s`,x+w-12,y+140,10,'#d2ffff','right',900);else if(p.superTime>0)txt(`OVERDRIVE ${p.superTime.toFixed(1)}s`,x+w-12,y+140,10,'#d9f8ff','right',850);else if(p.burnout>0)txt('TECHNIQUE BURNOUT',x+w-12,y+140,9,'#f8a6bd','right',850);txt(`OBJECTIVE WINDOW ${Math.ceil(time)}s  •  match-scaled from Arata's 60-minute pursuit`,x+12,y+156,9,'#9cbace','left',800)}
+ rounded(x+13,y+86,w*.42,6,2,'#1a3550');rounded(x+13,y+86,w*.42*p.ce/100,6,2,'#69d6f7');rounded(x+23+w*.42,y+86,w*.42,6,2,'#30254c');rounded(x+23+w*.42,y+86,w*.42*p.awakening/100,6,2,'#b798ff');txt('CE',x+13,y+103,10,'#7fcbe3','left',900);txt('AWAKENING',x+23+w*.42,y+103,9,'#c0aeff','left',850);
+ if(p.kind===1){rounded(x+7,y+122,w-14,8,3,'#11243a');rounded(x+7,y+122,(w-14)*p.momentum/200,8,3,p.superTime>0?'#f3fbff':'#6ac8ff');txt(`MOMENTUM ${Math.round(p.superTime>0?300:p.momentum)}%  / 200%`,x+12,y+140,11,'#9bd6ff','left',850);if(p.overOverTime>0)txt(`OVER OVERDRIVE ${p.overOverTime.toFixed(1)}s`,x+w-12,y+140,10,'#d2ffff','right',900);else if(p.superTime>0)txt(`OVERDRIVE ${p.superTime.toFixed(1)}s`,x+w-12,y+140,10,'#d9f8ff','right',850);else if(p.burnout>0)txt('TECHNIQUE BURNOUT',x+w-12,y+140,9,'#f8a6bd','right',850);}
  if(p.kind===0){txt(`LUCK ${Math.round(p.luck)}%    JOKERS ${p.jokers}/2`,x+12,y+135,10,c.glow,'left',800);if(p.diamondArmor>0)txt('INTEGRITY',x+w-12,y+135,10,'#a7e1ff','right',850);else if(p.selfEdge>0||p.selfBattery>0||p.selfAnchor>0)txt(p.selfEdge>0?'EDGE ACTIVE':p.selfBattery>0?'BATTERY ACTIVE':'ANCHOR ACTIVE',x+w-12,y+135,9,'#ffe4a7','right',850)}
  if(p.kind===2){txt(`MIRRORS ${p.clones.length}/10    SAVE ${p.snapshot?'READY':'EMPTY'}`,x+12,y+135,10,c.glow,'left',850);if(p.burnout>0)txt(`OVERHEAT ${p.burnout.toFixed(1)}s`,x+w-13,y+135,9,'#ffb6c7','right',850)}
  if(p.kind===3)txt(`TRIANGLES ${Math.ceil(p.triangles)}/8000 · ARMS ${p.extraArms}`,x+12,y+135,10,c.glow,'left',850);
  if(p.kind===4)txt(`SIPHON ${p.siphons}/10 · LOOP ${p.loopCharge>0?'READY':'EMPTY'}`,x+12,y+135,10,c.glow,'left',850);
  if(p.kind===5)txt(`ZEPHYR ${p.zephyrWindow>0?p.zephyrWindow.toFixed(1)+'s':'UNARMED'} · STORM`,x+12,y+135,10,c.glow,'left',850);
- if(p.comboTimer>0&&p.comboHits>1){
-  rounded(x+w-148,y+120,136,35,5,'#061323d9');txt(`${p.comboHits} HIT COMBO`,x+w-80,y+131,13,c.glow,'center',1000);txt(`${Math.round(p.comboDamage)} TOTAL DMG`,x+w-80,y+147,9,'#d5e6ff','center',850);
- }
- if(p.counterWindow>0)txt(`COUNTER READY ${p.counterWindow.toFixed(1)}s`,x+10,y+159,10,'#a1f3ff','left',950);
- if(p.coolDown>0||p.attackCd>0)txt(`TECH ${p.coolDown>0?p.coolDown.toFixed(1)+'s':'READY'} · HIT ${p.attackCd>0?p.attackCd.toFixed(1)+'s':'READY'}`,x+10,y+174,9,'#8eb2cf','left',850);
- txt(`DOMAIN ${p.awakening>=100&&p.ce>=35?'READY':Math.round(p.awakening)+'% AWK / '+Math.floor(p.ce)+' CE'}`,x+10,y+187,9,p.awakening>=100&&p.ce>=35?'#93fbd5':'#b5a6db','left',850);
- if(p.simpleDomain>0)txt(`SIMPLE DOMAIN ${p.simpleDomain.toFixed(1)}s`,x+w-11,y+157,10,'#baf9ff','right',950);
+ if(p.comboTimer>0&&p.comboHits>1)txt(`${p.comboHits} HITS`,x+w-12,y+172,16,c.glow,'right',1000);
+ if(p.counterWindow>0)txt('COUNTER READY',x+11,y+157,11,'#a1f3ff','left',950);
+ else if(p.awakening>=100&&p.ce>=35)txt('DOMAIN READY',x+11,y+157,11,'#93fbd5','left',950);
+ if(p.simpleDomain>0)txt('SIMPLE DOMAIN',x+w-11,y+157,10,'#baf9ff','right',950);
  if(p.ko){rounded(x+8,y+8,w-16,108,5,'#070911c7');txt('ELIMINATED',x+w/2,y+61,26,'#ff8d9f','center',1000)}
  }
  const timerY=mode===3?158:0;rounded(W/2-74,timerY,148,91,0,'#080d1dde');ctx.strokeStyle='#597ca344';ctx.strokeRect(W/2-73,timerY+.5,146,90);txt('ROUND 01',W/2,timerY+24,12,'#9cb2ce','center',1000);txt(Math.ceil(time).toString().padStart(3,'0'),W/2,timerY+57,35,time<20?'#ff9cb8':'#f3f7ff','center',1000);
@@ -1089,20 +1123,15 @@ function drawBars(){// HUD strips with health, CE, Awakening & personal meters
 function drawCardWheel(p){if(p.ko)return;let w=cardWheelCenter(p),cx=w.x,cy=w.y;ctx.save();glow(cx,cy,122,'#eac88f',.19);circle(cx,cy,92,'#0d1422db');ctx.strokeStyle='#ba965c99';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,92,0,TAU);ctx.stroke();const R=73;for(let i=0;i<8;i++){let idx=(p.cardIndex+i-2+cards.length*10)%cards.length;let c=cards[idx],ang=-Math.PI/2+i*TAU/8,x=cx+Math.cos(ang)*R,y=cy+Math.sin(ang)*R;let chosen=i===2;ctx.save();ctx.translate(x,y);ctx.rotate((ang+Math.PI/2)*.15);rounded(-19,-25,38,50,4,chosen?'#ffebbf':'#29334b');ctx.strokeStyle=chosen?'#fdecbd':'#aaadc055';ctx.lineWidth=chosen?3:1;ctx.strokeRect(-19,-25,38,50);txt(c.s,0,-7,18,c.type==='heart'?'#e86d8e':c.type==='diamond'?'#99d8ff':c.type==='joker'?'#eac689':'#ddc99b','center',1000);txt(c.r,0,14,12,chosen?'#483023':'#e6eaf5','center',900);ctx.restore()}
  // indicator to selected card at three o'clock
  ctx.strokeStyle='#fff6cb';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy,105,-.33,.33);ctx.stroke();circle(cx,cy,33,'#121624');txt(cards[p.cardIndex].s,cx,cy-10,22,'#ddc18d','center',1000);txt('WHEEL',cx,cy+12,8,'#d2bc88','center',900);const c=cards[p.cardIndex];let title=`${c.s}${c.r} ${c.name}`;rounded(cx-100,cy-117,200,22,4,'#161923df');txt(title,cx,cy-107,10,'#f8e7c1','center',950);ctx.restore()}
-function drawSmallInfo(){if(phase!=='game'&&phase!=='end')return;const n=players.filter(p=>p.kind===0&&!p.ko);if(!domain||domain.type!==0)n.forEach(drawCardWheel);rounded(14,H-56,760,37,6,'#070d1bcf');const guide='5-HIT CHAIN → FINISHER   ·   ↑+HIT LAUNCH   ·   ↓+HIT SWEEP   ·   PARRY → HIT COUNTER   ·   ↓+RCT REVERSAL';txt(guide,24,H-34,11,'#afc3dd','left',900);txt(ARENA_NAMES[arenaIndex]+' / LOCAL + ONLINE',W-20,H-20,10,'#7d8eac','right',800)}
+function drawSmallInfo(){if(phase!=='game'&&phase!=='end')return;const n=players.filter(p=>p.kind===0&&!p.ko);if(!domain||domain.type!==0)n.forEach(drawCardWheel)}
 function drawDomainFrame(){if(!domain)return;const d=domain,p=players[d.owner],c=p.cfg.glow;
  ctx.strokeStyle=colorAlpha(c,.58);ctx.lineWidth=9;ctx.strokeRect(5,5,W-10,H-10);
- if(d.type===0){
-   if(d.window<=0)return;
-   const labelY=mode===3?255:125;
-   rounded(W/2-268,labelY,536,64,9,'#170d19dc');
-   txt('FATED MISFORTUNE  ·  VIOLENCE PROHIBITED',W/2,labelY+23,20,'#ffe0a3','center',1000);
-   txt(d.window>0?`COUNTER WITH YOUR DOMAIN KEY · ${d.window.toFixed(1)}s`: `WAGER ${Math.min(5,d.wagerStep+1)} / 5  ·  90% HOUSE  /  10% CHALLENGERS`,W/2,labelY+48,12,'#f1ccac','center',850);
- }else{
-   const labelY=mode===3?257:145;
-   rounded(W/2-272,labelY,544,61,9,'#070e23dc');
-   txt(domainTitle(d.type),W/2,labelY+24,20,c,'center',1000);
-   txt(d.window>0?`COUNTER WITH YOUR DOMAIN KEY · ${d.window.toFixed(1)}s`:`SURE-HIT ACTIVE  ·  ${d.life.toFixed(1)}s  ·  ${['NO VIOLENCE','200% MOMENTUM LOCKED','INFINITE LIGHT REFLECTIONS','TRIANGLE SURE-HITS','VECTOR RECURRENCE','ATMOSPHERIC PRESSURE'][d.type]}`,W/2,labelY+49,11,'#f0e7ff','center',900);
+ // A compact label replaces the paragraph-sized Domain status overlay.
+ if(!domainIntro&&(d.type!==0||d.window>0)){
+  const y=mode===3?257:145;
+  rounded(W/2-230,y,460,50,8,'#070e23df');
+  txt(domainTitle(d.type),W/2,y+18,d.type===2?15:18,c,'center',1000);
+  txt(d.window>0?`COUNTER: DOMAIN KEY · ${d.window.toFixed(1)}s`:`${Math.ceil(d.life)}s LEFT`,W/2,y+39,11,'#e5ecff','center',900);
  }
  if(domainBurst>0){ctx.fillStyle=`rgba(246,250,255,${Math.max(0,domainBurst-.88)*.48})`;ctx.fillRect(0,0,W,H)}
 }
@@ -1111,12 +1140,9 @@ function drawWagerUI(){const d=domain;if(!d||d.type!==0||d.window>0||d.intro>0||
  ctx.save();ctx.fillStyle='#070910c0';ctx.fillRect(0,204,W,415);
  ctx.strokeStyle='#b88a566b';ctx.lineWidth=2;ctx.strokeRect(30,218,W-60,389);
  txt('WAGER OF ABSOLUTE EQUIVALENCE',cx,244,29,'#ffe2b0','center',1000);
- txt('Jin declares the stake. Every player automatically matches it. One side forfeits its own stake. No value is transferred.',cx,281,14,'#f3d1b3','center',700);
- txt('The spinner has fixed odds: 90% HOUSE, 10% CHALLENGERS. Luck, cards, and Providence cannot change the result.',cx,310,12,'#bfabb2','center',800);
+ txt('Choose a stake · 90% house chance · 5 spins',cx,289,15,'#f3d1b3','center',850);
  if(d.wagerPhase==='choose'){
-  const commands=`HOUSE P${p.id+1}: ◀ / ▶ to choose  •  ${prettyKey(p.map.cycle)} to cycle  •  ${prettyKey(p.map.attack)} or ${prettyKey(p.map.domain)} to confirm`;
-  txt(commands,cx,348,17,'#fbf5dd','center',900);
-  txt('SELECT THE COMMON STAKE FOR THE NEXT SPIN',cx,398,18,'#f8d4a4','center',950);
+  txt(`P${p.id+1}: ◀ / ▶ CHOOSE · ${prettyKey(p.map.attack)} CONFIRM`,cx,366,17,'#fbf5dd','center',900);
   const pulse=.6+.4*Math.sin(frame*6);
   for(let i=0;i<WAGER_TYPES.length;i++){const opt=WAGER_TYPES[i],xx=158+i*211,active=i===d.stakeIndex,valid=stakeValid(opt);
    rounded(xx,512,195,71,9,active?'#66502d':'#1e202d');ctx.strokeStyle=active?'#f9d78e':'#655162';ctx.lineWidth=active?3:1;ctx.strokeRect(xx+1,513,193,69);
@@ -1139,8 +1165,7 @@ function drawWagerUI(){const d=domain;if(!d||d.type!==0||d.window>0||d.intro>0||
    txt(`LOSING SIDE FORFEITS ${stake.name}  ·  NO TRANSFER`,cx,641,13,'#ffd8b8','center',850);
   }
  }
- txt(`VERDICTS: ${history.map(r=>r.win?'H':'C').join(' · ')||'—'}     |     ${history.length}/5 COMPLETED`,cx,686,15,'#e6bf89','center',850);
- txt('Within Fated Misfortune, punches, kicks, projectiles, healing and cursed techniques cannot be used.',cx,711,12,'#bdb0bd','center',700);
+ txt(`SPIN ${history.length}/5 · ${history.map(r=>r.win?'H':'C').join(' · ')||'—'}`,cx,687,15,'#e6bf89','center',850);
  ctx.restore();
 }
 function drawDomainCinematic(){if(!domainIntro)return;
@@ -1155,17 +1180,17 @@ function drawDomainCinematic(){if(!domainIntro)return;
   for(let i=0;i<4;i++){let x=160+i*350;rounded(x,130,155,470,8,'#64243c4c');line(x+35,130,x+35,590,'#f6c38e52',3)}
   for(let i=0;i<16;i++){const theta=i*TAU/16+frame*2.5,x=cx+Math.cos(theta)*(.5+progress)*230,y=cy+Math.sin(theta)*(.3+progress)*140;txt(['♠','♦','♣','♥'][i%4],x,y,28,'#ffdb9f','center',900)}
   txt('✦',cx,cy-93,63,'#ffe8b1','center',1000);
-  txt('THE HOUSE INVITES YOU TO PLAY',cx,cy+136,22,'#fbe4ba','center',950);
+
  }else if(k===1){
   for(let i=0;i<60;i++){const x=(i*91+frame*160)%W,y=(i*61+frame*280)%H;line(x,y,x-9,y+23,'#afe9ff75',2)}
   txt('↑',cx,cy-84,104,'#b4f0ff','center',1000);
-  txt('ONE PATH. NO HESITATION.',cx,cy+135,22,'#c9f2ff','center',950);
- }else if(k>=3){for(let i=0;i<18;i++){const a=i*TAU/18+frame*.7;const x=cx+Math.cos(a)*235,y=cy+Math.sin(a)*180;line(cx,cy,x,y,colorAlpha(color,.16),2)}txt(k===3?'△':k===4?'↗':'༄',cx,cy-85,115,color,'center',1000);txt(k===3?'EVERY SHAPE IS A WEAPON':k===4?'EVERY VECTOR OBEYS':'THE EYE CLAIMS THE AIR',cx,cy+135,21,'#f4ffff','center',950);
+
+ }else if(k>=3){for(let i=0;i<18;i++){const a=i*TAU/18+frame*.7;const x=cx+Math.cos(a)*235,y=cy+Math.sin(a)*180;line(cx,cy,x,y,colorAlpha(color,.16),2)}txt(k===3?'△':k===4?'↗':'༄',cx,cy-85,115,color,'center',1000);
  }else{
   for(let i=0;i<14;i++){const theta=frame*.5+i*TAU/14,x=cx+Math.cos(theta)*220,y=cy+Math.sin(theta)*200;
    ctx.strokeStyle=i%2?'#e8faff':'#b8a4ff';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y-55);ctx.lineTo(x+50,y);ctx.lineTo(x,y+55);ctx.lineTo(x-50,y);ctx.closePath();ctx.stroke()}
   txt('◇',cx,cy-80,135,'#e7faff','center',1000);
-  txt('NO SHADOW CAN ESCAPE',cx,cy+135,22,'#f1faff','center',950);
+
  }
 // Dedicated cinematic portrait panel: zoomed fighter, high-contrast lighting, hand-sign stamp.
  const portraitX=85,portraitY=190,portraitW=325,portraitH=475;
@@ -1178,15 +1203,15 @@ function drawDomainCinematic(){if(!domainIntro)return;
  rounded(portraitX+16,portraitY+15,portraitW-32,28,4,'#06101fe5');txt(owner.cfg.name.toUpperCase(),portraitX+portraitW/2,portraitY+30,13,'#f7faff','center',950);
  // The cut-in portrait is the only character drawing during the activation.
  // Domain hand-sign insignia overlays the lifted hand for readability.
- rounded(cx+130,485,276,46,8,'#081323df');txt(['BENZAITEN','SKYWARD','PRISM MUDRA','GENESIS SEAL','COMPASS FORM','STORM SIGN'][k],cx+268,508,15,color,'center',950);
+
  txt('DOMAIN EXPANSION',cx,105,40,'#f4f9ff','center',1000);
  txt(domainTitle(k),cx,176,k===2||k>=3?28:43,color,'center',1000);
- txt(['NO VIOLENCE · FIVE WAGERS · ABSOLUTE EQUIVALENCE','200% MOMENTUM · SURE-HIT CLARITY','INFINITE REFLECTION · SURE-HIT LIGHT','CRYSTALLINE TRAPS · SURE-HIT SHARDS','RECURSIVE TRAJECTORIES · VECTOR CONTROL','ATMOSPHERIC PRESSURE · STAMINA DRAIN'][k],cx,233,16,'#faf4fb','center',850);
+
  const bar=clamp(progress,0,1);rounded(cx-300,681,600,9,5,'#1d2a42');rounded(cx-300,681,600*bar,9,5,color);
- if(domain&&domain.window>0)txt(`COUNTER NOW: DOMAIN KEY  ·  ${domain.window.toFixed(1)}s`,cx,723,19,'#fdf5e3','center',900);
+ if(domain&&domain.window>0)txt(`COUNTER: DOMAIN KEY · ${domain.window.toFixed(1)}s`,cx,723,18,'#fdf5e3','center',900);
  ctx.restore();
 }
-function drawAnnouncements(){if(!announcer||annTimer<=0||domain&&domain.type===0&&domain.window<=0&&domain.intro<=0)return;let a=clamp(annTimer*3,0,1);ctx.save();ctx.globalAlpha=a;const y=domain?340:280;glow(W/2,y+30,400,announcer.col,.18);rounded(W/2-370,y-5,740,92,7,'#040817b8');ctx.strokeStyle=colorAlpha(announcer.col,.6);ctx.lineWidth=1;ctx.strokeRect(W/2-370,y-5,740,92);txt(announcer.top,W/2,y+25,35,announcer.col,'center',1000);txt(announcer.bottom,W/2,y+64,16,'#f0f6ff','center',900);ctx.restore()}
+function drawAnnouncements(){if(!announcer||annTimer<=0||domainIntro||clash||domain)return;const a=clamp(annTimer*4,0,1),y=192;ctx.save();ctx.globalAlpha=a;rounded(W/2-228,y-5,456,46,7,'#040817ca');txt(announcer.top,W/2,y+18,21,announcer.col,'center',1000);ctx.restore()}
 function createRosterPortraits(){
  document.querySelectorAll('.fighter').forEach((card,i)=>{
   let art=card.querySelector('.roster-art');if(!art){art=document.createElement('canvas');art.className='roster-art';art.width=200;art.height=220;card.prepend(art)}

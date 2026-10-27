@@ -1,5 +1,12 @@
 # Changelog
 
+## V8.1 Clean Combat UI
+- Fewer floating combat labels. Regular hit damage is shown in health meters instead of a flood of numbers.
+- Key moments still have short, readable cues: parry, counter, Black Flash, finisher, launch, and resource limits.
+- Cleaner, shorter Domain cinematics, Domain status and clash scores. All previous cinematics, effects and gameplay preserved.
+- Removed the always-on tutorial ribbon from the fight. Detailed fighter guidance now lives under CONTROLS.
+- Suppressed duplicate Domain labels and two-player-only third-fighter prompts.
+
 ## V8.0 Ascension
 - Standalone title screen, separate fighter roster, four distinct arena selection cards.
 - New procedural ruined city, shrine, rooftop and underground arena scenes.

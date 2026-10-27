@@ -1,0 +1,13 @@
+MAXIMUM OUTPUT: ZERO V8.1 - CLEAN COMBAT UI
+
+This is a presentation-only update to V8 Ascension.
+
+During a fight:
+- Much less text appears over the characters.
+- Major cues, counters, and insufficient-resource warnings still appear briefly.
+- Domain animations and Domain clashes remain.
+- Find the full controls and character move guide by opening CONTROLS under the arena.
+
+Everything else, including all characters, abilities, music, arenas, touch controls, online rooms, and deployment steps, is carried over from V8.
+
+To deploy online: replace the prior V8 files with all files from this ZIP, including public/ and server.mjs.
