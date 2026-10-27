@@ -1,33 +1,19 @@
-# Version 7.1 | Domain Crash Safety Fix
+# Changelog
 
-- Added centralized resource checks for Domain Expansions and Domain clashes.
-- Normal Domain activation requires full 100 Awakening and 35 CE.
-- Counter-Domain activation and 3-way clash participation require 35 Awakening and 28 CE.
-- When either resource is insufficient, pressing Domain does nothing. The existing Domain or clash continues unchanged.
-- Removed duplicate Domain input handling that could trigger conflicting state transitions during combat.
-- Preserved all six fighters, Simple Domain, existing wagers, barrier-damage clashes, and online multiplayer.
+## V8.0 Ascension
+- Standalone title screen, separate fighter roster, four distinct arena selection cards.
+- New procedural ruined city, shrine, rooftop and underground arena scenes.
+- Heavier finishers, grounded and airborne combo hits, launchers, sweeps, wall bounces, responsive hit reaction physics.
+- Timed parry and active counterattack with UI prompts.
+- Combo hit/damage counter, Domain/Maximum resource warnings, refreshed in-game advanced move reference.
+- Domain zoom, character close-up, sign stamp, extra visual atmosphere for all six Domains, custom activation stingers.
+- Two-second opposing-barrier collision sequence at the start of a Domain clash, then normal virtual damage contest.
+- Host arena selection in online lobby, arena synchronization via server and game snapshots.
+- Mobile/tablet touch controller with landscape floating controls.
+- Original adaptive four-track OST retained.
 
-# V7: Six Fighters + Simple Domain
+## V7.2 Original Soundtrack
+- Four original theme MP3s with adaptive transitions and independent music/SFX volume.
 
-## Added
-- Hido Dakara with Creation, triangular-construct styles, Enlarge traps, Bind crystal arms, Reconstruction and an 8,000-triangle resource meter.
-- Kitsune with Trajectory Strike, Refraction Barrier, Velocity Siphon (10 uses), Kinetic Loop, and Intersectional Compass.
-- Arashi with Tempest, Repelling Monsoon, Storm Veil, Gale Step, Maximum: Zephyr, and Eye of the Silent Hurricane.
-- Simple Domain for every fighter (Guard + Domain), with a time limit, cursed-energy cost, cooldown, animated barrier, and guaranteed-hit protection.
-- Three new character portraits and distinct outfit, hair and energy colors.
-- Three distinct new Domain environments, activation effects, and adapted sure-hit mechanics.
-- The online room service accepts all six character IDs in local and remote character selection.
-
-## Network presentation
-- Guest Chromebooks interpolate fighter display positions between authoritative snapshots.
-- Reduced the size of decorative particle/effect snapshot payloads.
-
-## Preserved
-- Jin's card wheel and nonviolent five-wager Domain.
-- Arata's Momentum, Overdrive and triple-Down enhanced Overdrive.
-- Shirogane's holograms, time manipulation and mirrored Domain.
-- Black Flash, RCT/CTR, five-hit combos, 150-second matches, interactive 2- and 3-way Domain clashes with virtual damage scoring, and rematches.
-
-## Design notes
-- Hido's Domain name and mechanics are an original game interpretation, since the submitted Hido profile provided no Domain Expansion.
-- All time limits and costs are adapted to competitive short rounds.
+## V7.1 Domain Crash Fix
+- Central resource check for Domain/Clash actions and preserved nonviolent Domain logic.

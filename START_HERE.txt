@@ -1,18 +1,45 @@
-MAXIMUM OUTPUT: ZERO V7.1 — DOMAIN CRASH FIX
+MAXIMUM OUTPUT: ZERO V8.0 / ASCENSION
+====================================
 
-WHAT WAS FIXED
-Opening a Domain without 100 Awakening and 35 CE now fails safely.
-Countering a Domain or joining a three-way clash without 35 Awakening and 28 CE also fails safely.
-A failed Domain attempt leaves the active Domain/clash unchanged and does not spend resources.
-The Domain keypress is processed once, not twice. The round-start freeze now resets on rematches.
+THE FULL NEW GAME IS IN public/index.html AND public/music/.
 
-HOW TO UPDATE YOUR EXISTING GITHUB + RENDER GAME
-1. Unzip this package and open the Maximum_Output_Zero_V7_COMPLETE folder.
-2. Open public, locate index.html.
-3. Replace the old public/index.html in your existing GitHub repository with this new index.html.
-4. Commit your change. Render should redeploy the existing service.
-5. Refresh the hosted game once Render shows Live.
+QUICK START, LOCAL GAME:
+  1. Extract this entire ZIP folder.
+  2. Open public/index.html in a recent Chrome, Edge or Safari browser.
+  3. Select LOCAL VERSUS > choose fighters > CHOOSE ARENA > BEGIN MATCH.
+  4. Click CONTROLS under the game for the complete key guide.
 
-All 6 characters, online multiplayer, Simple Domain, wagers, and 3-way barrier-damage clashes remain available.
+FOR ONLINE ROOMS:
+  1. Requires Node.js 18 or newer.
+  2. In the extracted ZIP directory, run: npm start
+  3. Open http://localhost:3000 on the hosting computer.
+  4. Host a room, invite other devices using the invite URL, select the
+     stage in the room lobby, ready everyone up, and start the match.
+  5. To share online across the internet, deploy this complete project to
+     a Node-supporting host. DEPLOY_ON_RENDER.md describes one option.
 
-To play on a Mac server instead: open Terminal inside this folder and run npm start.
+MOBILE / TABLET:
+  - Use landscape mode.
+  - A local device has Player 1 touch controls; for 2 or 3 device
+    multiplayer, use online rooms. iPad users can also use a keyboard.
+  - Touch controls float over the lower sides of the arena in landscape.
+
+AUDIO:
+  - Four original tracks included in public/music/. They start after
+    clicking/tapping the game. Open AUDIO for independent volume sliders.
+  - This bundle does not contain any copyright-restricted JJK soundtrack.
+
+NEW IN V8:
+  - Title screen > character select > four illustrated stages > combat
+  - Faster strings, aerial launchers, knockback, wall bounces, parry counters
+  - Combo meter and clearer resource feedback
+  - Domain character close-up, zoom effect, activation stinger, richer worlds
+  - Opposing Domain barriers physically clash before virtual battle starts
+  - Host-selected arenas carried to everyone in online rooms
+  - Optional mobile/tablet controls and updated built-in game guide
+
+NOTES:
+  - Online mode still requires the server and internet/LAN connectivity.
+  - Online rooms are HOST-SIMULATED. Network latency can affect reaction moves.
+  - Browser audio starts after first interaction, by browser policy.
+  - Original V7.1 Domain resource safety rules are retained.

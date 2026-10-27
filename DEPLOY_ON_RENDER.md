@@ -1,6 +1,6 @@
 # Maximum Output: Zero, playing from different houses
 
-This folder is ready for a GitHub repository and a Render **Web Service**. It is not already hosted.
+This V7.2 folder includes `public/music/` with four MP3 tracks. **Upload the whole music folder and the new `server.mjs` too.** This folder is ready for a GitHub repository and a Render **Web Service**. It is not already hosted.
 
 ## A. Upload to GitHub
 
@@ -14,6 +14,7 @@ This folder is ready for a GitHub repository and a Render **Web Service**. It is
     package.json
     render.yaml
     public/index.html
+    public/music/*.mp3
 
 If dragging the `public` folder doesn't work, create a `public` folder in the repository by uploading `index.html` while you are viewing a `public` subdirectory, or use GitHub's Create new file path `public/index.html` and paste the contents of the local file.
 

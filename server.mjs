@@ -15,7 +15,7 @@ const key = () => randomBytes(24).toString('hex');
 function code(){let c;do{c=Array.from({length:6},()=>alphabet[randomInt(alphabet.length)]).join('')}while(rooms.has(c));return c}
 const json = (res, status, object) => {res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Access-Control-Allow-Origin':'*'});res.end(JSON.stringify(object))};
 const emit = (res, type, payload) => {if(res?.writable&&!res.destroyed){try{res.write(`event: ${type}\ndata: ${JSON.stringify(payload)}\n\n`)}catch{}}};
-function roomView(r){return {code:r.code,mode:r.mode,status:r.status,players:r.members.map((m,i)=>m?{slot:i,name:m.name,character:m.character,ready:m.ready,online:!!m.stream}:null)}}
+function roomView(r){return {code:r.code,mode:r.mode,status:r.status,arenaIndex:r.arenaIndex,players:r.members.map((m,i)=>m?{slot:i,name:m.name,character:m.character,ready:m.ready,online:!!m.stream}:null)}}
 function publish(r,type,payload,except=-1){for(let i=0;i<r.members.length;i++){const m=r.members[i];if(m&&m.stream&&i!==except)emit(m.stream,type,payload)}}
 function publishLobby(r){publish(r,'lobby',roomView(r))}
 function session(body){const r=rooms.get(String(body.room||'').trim().toUpperCase());if(!r)return null;const i=r.members.findIndex(m=>m&&m.token===body.token);if(i<0)return null;return {r,i,m:r.members[i]}}
@@ -31,7 +31,7 @@ async function api(req,res,url){
    const data=await bodyJSON(req,limit);
    if(url.pathname==='/api/create'){
     const mode=data.mode===3?3:2;
-    const r={code:code(),mode,status:'lobby',members:Array(mode).fill(null),born:Date.now(),seen:Date.now()};
+    const r={code:code(),mode,arenaIndex:Number.isInteger(data.arenaIndex)&&data.arenaIndex>=0&&data.arenaIndex<=3?data.arenaIndex:0,status:'lobby',members:Array(mode).fill(null),born:Date.now(),seen:Date.now()};
     r.members[0]={token:key(),name:safeName(data.name),character:validChar(data.character)?data.character:0,ready:false,stream:null};
     rooms.set(r.code,r);return json(res,200,{room:r.code,token:r.members[0].token,slot:0,host:true});
    }
@@ -56,6 +56,12 @@ async function api(req,res,url){
     if(i===0){publish(r,'closed',{reason:'The host closed this room'},0);for(const p of r.members)if(p?.stream)try{p.stream.end()}catch{};rooms.delete(r.code)}
     else {r.members[i]=null;if(r.status==='playing'){r.status='lobby';for(const p of r.members)if(p)p.ready=false;publish(r,'return-lobby',roomView(r))}publishLobby(r)}
     return json(res,200,{ok:true});
+   }
+   if(url.pathname==='/api/arena'){
+    if(i!==0)return no(res,'Only the host chooses the stage',403);
+    if(r.status!=='lobby')return no(res,'Arena is locked during a fight');
+    if(!Number.isInteger(data.arenaIndex)||data.arenaIndex<0||data.arenaIndex>3)return no(res,'Invalid arena');
+    r.arenaIndex=data.arenaIndex;publishLobby(r);return json(res,200,{ok:true});
    }
    if(url.pathname==='/api/character'){
     if(r.status!=='lobby')return no(res,'Cannot switch characters during a match');
@@ -109,6 +115,26 @@ async function api(req,res,url){
   if(req.method==='GET'&&(url.pathname==='/'||url.pathname==='/index.html')){
     const html=await readFile(path.join(DIR,'public','index.html'));
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});res.end(html);return;
+  }
+  // Serve the four bundled soundtrack files to all local/online players.
+  // Tight filename allowlist keeps this independent of any general file server.
+  if(req.method==='GET'&&/^\/music\/[a-z0-9-]+\.mp3$/.test(url.pathname)){
+    let content;
+    try{content=await readFile(path.join(DIR,'public',url.pathname.slice(1)))}
+    catch{return no(res,'Soundtrack not found',404)}
+    const base={'Content-Type':'audio/mpeg','Cache-Control':'public, max-age=3600','Accept-Ranges':'bytes','X-Content-Type-Options':'nosniff'};
+    const range=req.headers.range;
+    if(range&&/^bytes=\d*-\d*$/.test(range)){
+      const [first,last]=range.slice(6).split('-');
+      const start=first?Number(first):Math.max(0,content.length-Number(last));
+      const end=first&&last?Math.min(content.length-1,Number(last)):content.length-1;
+      if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||start>end||start>=content.length){
+        res.writeHead(416,{...base,'Content-Range':`bytes */${content.length}`});res.end();return;
+      }
+      const bytes=content.subarray(start,end+1);
+      res.writeHead(206,{...base,'Content-Range':`bytes ${start}-${end}/${content.length}`,'Content-Length':bytes.length});res.end(bytes);return;
+    }
+    res.writeHead(200,{...base,'Content-Length':content.length});res.end(content);return;
   }
   if(req.method==='GET'&&url.pathname==='/health'){return json(res,200,{ok:true,rooms:rooms.size})}
   return no(res,'Not found',404);

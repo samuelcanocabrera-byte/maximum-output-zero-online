@@ -1,79 +1,41 @@
-# V7.1 Domain Crash Fix
+# MAXIMUM OUTPUT: ZERO V8.0 / ASCENSION
 
-Domain activation now fails silently and safely when the player has too little Cursed Energy or Awakening. Full Domain activation requires 100 Awakening and 35 CE. A Domain counter/clash requires 35 Awakening and 28 CE. Joining a 3-way clash requires the same 35 Awakening and 28 CE. All costs are checked before spending resources or changing the game state. The Domain button is processed once per keypress.
+A free, original browser-based anime-inspired 2D fighting game with six distinct fighters, selectable arenas, Domain Expansions, counters, juggle combos, original music and local/online multiplayer.
 
-All V7 gameplay systems and online multiplayer are preserved.
+**Start:** read `START_HERE.txt`.
 
-# MAXIMUM OUTPUT: ZERO, Six Fighters Update (V7)
+## Play
 
-A browser fighting game with **six playable characters**, local two- or three-player matches, and rooms for friends on separate Chromebooks. This is an updated version of the uploaded online-multiplayer game, not a separate simplified game.
+Run `npm start` in this directory to start the multiplayer web server, then open `http://localhost:3000`. Local play can also work by opening `public/index.html` directly, with the MP3 music files kept in `public/music/`.
 
-## New characters
+Choose Local Versus on the title page, select players and fighters, choose a battlefield, and begin the match. For online multiplayer, open Online Room, create a 2- or 3-person room, invite the other players using its link, select the arena as host, and begin when all players are connected and ready.
 
-| Fighter | Main techniques | Domain |
-| --- | --- | --- |
-| Hido Dakara | Triangular Genesis, Creation, Enlarge, Bind, Reconstruction, 8,000-triangle reserve | Infinite Triangulation (**game-original** Domain because none was supplied) |
-| Kitsune | Trajectory Strike, Refraction Barrier, Velocity Siphon (10 uses), Kinetic Loop | Intersectional Compass |
-| Arashi | Tempest, Repelling Monsoon, Gale Step, Maximum: Zephyr | Eye of the Silent Hurricane |
+## Main controls
 
-**Still available:** Kisaragi Jin, Arata Michizane, and Shirogane Aizawa, including their card, Momentum, hologram, Domain wager, Black Flash, and three-way Domain clash systems.
+| Action | Player 1 | Player 2 | Player 3 |
+|---|---|---|---|
+| Move | A / D | Left / Right | 4 / 6 |
+| Jump / launcher modifier | W | Up | 8 |
+| Crouch / sweep modifier | S | Down | 5 |
+| Attack | F | J | 1 |
+| Technique | G | K | 2 |
+| Guard | H | L | 3 |
+| Cycle | Q | U | 7 |
+| Domain | E | O | 0 |
+| Maximum | R | I | 9 |
+| RCT / CTR | C | P | Period |
+| Dash | Left Shift | Right Shift | Numpad Enter |
 
-### Universal Simple Domain
+For a perfect-guard counter, press Guard just before contact, then Attack when COUNTER READY appears. Hold Up + Attack for an air launcher, or Down + Attack for a sweep. Press Guard + Domain to cast Simple Domain. Detailed character-specific controls remain in the game's **CONTROLS** section.
 
-**Hold Guard + press Domain** for a defensive Simple Domain:
+For phones/tablets, use landscape mode. Touch controls appear during fights. Local touch controls are for P1. Other friends should join through separate online devices.
 
-- On each Chromebook: hold **H**, tap **E**.
-- Shared keyboard, Player 2: hold **L**, tap **O**.
-- Shared keyboard, Player 3: hold **3**, tap **0**.
-- Costs **24 Cursed Energy**, lasts **3.3 seconds**, and has a **9.5-second cooldown**. Protects the user against sure-hit attacks and the related status effects while active.
-- It does not cancel Jin's nonviolent wagering Domain, and it doesn't automatically win Domain clashes.
+## Domains
 
-### Extra fighter controls
+Domain activation: **100 Awakening, 35 Cursed Energy**. Joining a counter Domain clash during the response window: **35 Awakening, 28 Cursed Energy**. The game does not consume resources when a Domain action is ineligible. In a clash, the barriers collide for a short intro before the timed fight with virtual damage; real HP is frozen for the clash.
 
-All fighters use the same action buttons. On a separate Chromebook: **WASD** to move, **F** to attack, **G** Technique, **H** Guard, **Q** Cycle/Style, **E** Domain, **R** Maximum, **C** RCT, **Left Shift** Dash.
+## Music
 
-- **Hido:** G conjures the active creation. Q cycles sword, spear, shield and chain / reconstructs a trap. S+G enlarges the marked trap. H+G binds up to two additional crystal arms. The triangle meter decreases with creation and upkeep.
-- **Kitsune:** G launches Trajectory Strike, S+G uses Velocity Siphon at short range, H+G creates a Refraction Barrier and redirects projectiles, Q charges a Kinetic Loop for the next G. R fires an enhanced Vector Cannon, an original gameplay adaptation.
-- **Arashi:** G launches Tempest, S+G uses Repelling Monsoon, H+G uses Storm Veil, Q activates Gale Step. R charges Zephyr; connect a melee Attack within 5 seconds to apply a 6-second RCT lockout. Once per match.
+Four original instrumental loops, shipped locally as MP3s in `public/music/`. Set the soundtrack and SFX volumes in the **AUDIO** menu. Audio starts after the first gesture due to browser autoplay rules. JJK's copyrighted soundtrack is not included.
 
-## Publish the update for friends in different houses
-
-This is a **GitHub-root-ready ZIP**. Extract it, then upload the following items **at the top level** of your existing GitHub repository, replacing the old copies:
-
-```
-package.json
-server.mjs
-render.yaml
-public/
-    index.html
-README.md
-CHANGELOG.md
-```
-
-**Do not upload the outer folder** as another level. If the repository previously had an extra directory around those files, instead point Render's **Root Directory** to that directory. The `package.json` must be inside the configured Root Directory.
-
-If your Render Web Service is already connected to GitHub, committing these files typically triggers a new deployment. Otherwise, select **Manual Deploy → Deploy latest commit** in its dashboard.
-
-Use these Render settings: Runtime **Node**, Build Command **`npm install`**, Start Command **`npm start`**, Health Check **`/health`**. The server uses Render's assigned `PORT` automatically.
-
-To confirm: visit **your real Render URL followed by `/health`**. A running server responds with JSON containing `"ok":true`.
-
-Then all players open your Render site, choose **Play on Separate Chromebooks**, join the same six-character room, each pick a fighter, ready up, and the room host starts.
-
-## Run locally on a Mac
-
-Install Node.js 18 or newer, open Terminal in the extracted folder, and run:
-
-```bash
-npm start
-```
-
-Open `http://localhost:3000` on your Mac. Friends on your home Wi-Fi can use your Mac's LAN IP address with port 3000, assuming the firewall allows it. For friends at different houses, deploy the server publicly instead.
-
-## Network notes
-
-The host's browser runs the authoritative match, while other players transmit inputs and receive game state through a lightweight Node.js room service. This build reduces visual stutter through client-side position smoothing and sends fewer decorative effects over the network. **It does not remove internet latency or guarantee low ping on Render's free tier.** The server and host browser both need to remain active. This has not been load-tested under all home-network conditions.
-
-## Character interpretation
-
-Each character's abilities are adapted to a ~150-second fighting-game round. Some complex effects are simplified for fairness and technical feasibility. In particular, **Hido's Domain Expansion was not supplied**, so Infinite Triangulation is an original addition. The additional Maximum-style attacks for Hido and Kitsune are also gameplay adaptations rather than abilities claimed in the supplied character descriptions.
+See `ASCENSION_UPDATE.md` for full change notes and testing limitations, and `DEPLOY_ON_RENDER.md` for an online deployment option.
