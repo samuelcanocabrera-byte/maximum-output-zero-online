@@ -1,0 +1,64 @@
+MAXIMUM OUTPUT: ZERO - UPDATE PACKAGE (V8.2)
+============================================
+
+WHAT TO RUN
+-----------
+This whole folder is the game. Start it from THIS folder (the one that
+contains package.json and server.mjs):
+
+    npm start        ->  http://localhost:3000
+
+You can also double-click public/index.html for local play.
+
+The folder Maximum_Output_Zero_Deploy_Ready/ is an OLD copy of the game
+from an earlier version. It does NOT contain these updates. Ignore it, or
+delete it so nobody launches it by mistake.
+
+WHAT IS NEW IN THIS VERSION
+---------------------------
+1. Attacking and blocking together behave correctly. An attack commits the
+   fighter (guard frames no longer stack on top of a swing), and holding
+   Guard blocks again the moment the attack recovers.
+
+2. Shirogane rebalanced:
+   - 265 HP (was 280), speed 314 (was 324), 8.0 regen (was 8.9)
+   - Holograms: 6 clones x 2 hits, 27 CE, 4.2s, 30% absorb
+     (was 10 x 3, 22 CE, 5.4s, 43%)
+   - Luminal Lash: 13 damage per beam, 24 CE, 0.62s cooldown
+   - Chronal Lag: 15 CE, shorter evade window, longer cooldown
+   - Moment Capture: 30 CE, 0.95s cooldown, heal capped at 40% max HP,
+     no longer refunds Cursed Energy
+   - Overclock: 66 damage (was 86), 5.2s burnout (was 3.3s)
+   - Domain rays and Negative Exposure reduced
+
+3. Hido's constructs are drawn as real weapons: crystal sword (blade,
+   crossguard, hilt), spear (shaft and leaf blade), faceted shield, and a
+   linked chain. Same damage and hitboxes as before.
+
+4. Online 3-player rooms work. The lobby has a 2 PLAYERS / 3 PLAYERS
+   selector, and the room's size now drives input routing and match start.
+
+5. Typing fixed. The game no longer swallows letters in text fields, so
+   room codes and player names register every keystroke.
+
+6. Custom keybinds. Click KEYS in the top bar, click a key, press a new
+   one. Conflicting keys swap. RESTORE DEFAULTS resets everything. The
+   layout is saved in the browser and used in online rooms too.
+
+7. Controller support for PS4/PS5, Xbox and Switch Pro (standard mapping):
+   stick/D-pad move, A/Cross jump, X/Square strike, Y/Triangle technique,
+   B/Circle guard, LB/L1 dash, RB/R1 cycle, LT/L2 RCT, RT/R2 Domain,
+   R3 Maximum, Options/Menu emote. Keyboard and controller work together.
+
+8. Emotes. Press T (P1), ; (P2) or Numpad + (P3), or Options on a
+   controller, to open the palette; Left/Right selects; press again to
+   send. Other players see the emote online.
+
+9. Credits. CREDITS in the menu footer: Samuel, Ateeb, Wendao.
+
+FILES CHANGED
+-------------
+public/index.html   game, UI, input, netcode
+server.mjs          accepts the emote input action
+
+Everything else is unchanged.

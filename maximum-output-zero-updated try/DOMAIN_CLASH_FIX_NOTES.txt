@@ -1,0 +1,16 @@
+MAXIMUM OUTPUT: ZERO V8.1.1 — DOMAIN CLASH CRASH FIX
+
+FIXED
+- When Player 2 opens a Domain and Player 1 challenges during the activation cinematic, the clash now starts without freezing the game.
+- The activation-cinematic input loop snapshots the active Domain and exits after handling one challenge. It no longer reads the cleared Domain state after a clash starts.
+- The reverse direction continues to work.
+- Insufficient-resource challenges still fail safely without clearing the active Domain or consuming resources.
+
+VALIDATION
+- Browser simulation: P2 Domain -> P1 challenge starts the clash.
+- Reverse P1 Domain -> P2 challenge still starts the clash.
+- Clash timer continues after the barrier intro.
+- An unaffordable challenge leaves the current Domain intact.
+- No uncaught JavaScript errors in these test paths.
+
+All other V8.1 features are retained.

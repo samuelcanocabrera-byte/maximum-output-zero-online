@@ -1,0 +1,23 @@
+MAXIMUM OUTPUT: ZERO v7.1 - DOMAIN CLASH CE SAFETY PATCH
+
+Fixes:
+- All Domain activation, counter, and third-party join attempts use a common resource check.
+- Challenger needs 28 CE and 35 Awakening before countering an existing Domain or joining a clash.
+- Starting a Domain requires 35 CE and 100 Awakening.
+- Attempts without enough CE or Awakening fail cleanly. No CE or Awakening is deducted.
+- Clear floating warning appears: DOMAIN FAILED · NEED 28 CE (current amount).
+- Warning is throttled to avoid flooding the screen when a key is spammed.
+- Fixed Jin's nonviolence Domain ignoring valid counter inputs after the opening cinematic.
+- Removed double-handling of the Domain button within a single frame.
+- All previously existing six characters, Simple Domain, wagers, and online multiplayer remain intact.
+
+CHECKS
+- JavaScript syntax: PASS
+- 2 player failed counters for CE below 28: PASS
+- 2 player successful counter with exactly 28 CE + 35 Awakening: PASS
+- 3 player failed and successful third player join: PASS
+- Normal keyboard action path: PASS
+- Failure paths across all six Domain types: PASS
+- No browser JavaScript exceptions: PASS
+
+NOTE: Real-world online latency/network variations were not simulated.

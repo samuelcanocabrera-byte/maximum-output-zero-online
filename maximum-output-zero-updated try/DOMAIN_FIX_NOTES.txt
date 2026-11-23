@@ -1,0 +1,14 @@
+MAXIMUM OUTPUT: ZERO — V7.1 DOMAIN SAFETY PATCH
+
+FIXED
+- Pressing Domain with too little cursed energy does nothing.
+- Pressing Domain with too little Awakening does nothing.
+- Applies to first Domain (100 Awakening + 35 CE), Domain counter (35 Awakening + 28 CE), and joining an ongoing three-way clash (35 Awakening + 28 CE).
+- Costs are deducted only after all checks pass.
+- Domain key input is handled once per press rather than twice.
+- No changes to existing six characters, Simple Domain, online rooms or combat.
+
+UPLOAD TO YOUR EXISTING GITHUB REPOSITORY
+  Replace public/index.html with the new file.
+  server.mjs and package.json are included for completeness but are unchanged.
+  Render should then redeploy your repository automatically.
