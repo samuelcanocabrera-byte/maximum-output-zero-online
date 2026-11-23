@@ -10,7 +10,7 @@ const PORT = Number(process.env.PORT || 3000);
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const rooms = new Map();
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const actions = new Set(['left','right','up','down','attack','skill','guard','cycle','super','domain','rct','dash']);
+const actions = new Set(['left','right','up','down','attack','skill','guard','cycle','super','domain','rct','dash','emote']);
 const key = () => randomBytes(24).toString('hex');
 function code(){let c;do{c=Array.from({length:6},()=>alphabet[randomInt(alphabet.length)]).join('')}while(rooms.has(c));return c}
 const json = (res, status, object) => {res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Access-Control-Allow-Origin':'*'});res.end(JSON.stringify(object))};

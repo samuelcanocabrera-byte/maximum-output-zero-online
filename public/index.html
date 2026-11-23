@@ -134,11 +134,28 @@
 }
 
 .v8-guide{padding:14px 18px;background:#101d32;border-bottom:1px solid #345677}.v8-guide-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:9px}.v8-guide-grid p{margin:0;background:#0b1628;border:1px solid #30435e;border-radius:7px;padding:12px;color:#afc8dd;font-size:11px;line-height:1.65}.v8-guide-grid p b{color:#a4eaff;display:block;letter-spacing:.7px;font-size:11px;margin-bottom:3px}@media(max-width:800px){.v8-guide-grid{grid-template-columns:1fr}}
+
+/* V8.2: keybind, controller and credits panels reuse the existing settings chrome. */
+.key-panel{right:11px;top:59px;width:min(430px,calc(100% - 22px));max-height:calc(100% - 70px);overflow:auto}
+.key-panel .key-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #22364d;font-size:10px;color:#c0daef;font-weight:850;letter-spacing:.5px}
+.key-panel .key-row:last-of-type{border-bottom:0}
+.key-panel .key-cap{min-width:104px;text-align:center;background:#101f38;border:1px solid #476b8c;border-radius:5px;padding:6px 9px;font-size:10px;font-weight:900;color:#eaf6ff;letter-spacing:.4px}
+.key-panel .key-cap:hover{border-color:#8be8ff;color:#d9f7ff}
+.key-panel .key-cap.listening{border-color:#8be8ff;color:#8be8ff;box-shadow:0 0 14px #3fb9ff55}
+.key-panel .key-note{font-size:10px;line-height:1.55;color:#9fb8d2;margin:10px 0 0}
+.key-panel .key-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.pad-line{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10px;color:#a9d6ee;border:1px solid #34536f;border-radius:5px;padding:8px;margin-top:11px;background:#0b1728;line-height:1.5}
+.pad-line b{color:#8be8ff}
+.credits-box h2{color:#8ee6ff}
+.credit-names{display:grid;gap:9px;margin:16px 0 6px}
+.credit-name{border:1px solid #33506d;border-radius:9px;background:linear-gradient(105deg,#14263d,#0c1729);padding:13px 16px;font-size:clamp(16px,2.3vw,24px);font-weight:1000;font-style:italic;letter-spacing:1px;color:#e8f7ff;text-shadow:0 2px 16px #2f9fd955}
+.credit-name small{display:block;font-size:9px;letter-spacing:2.4px;color:#7fcdeb;margin-top:5px;font-style:normal;font-weight:850}
+@media(max-width:560px){.key-panel{top:59px}}
 </style>
 </head>
 <body>
 <div id="shell">
-  <header id="head"><div class="logo">MAXIMUM <span>OUTPUT:</span> ZERO <span style="color:#778fac;font-size:10px;font-style:normal;letter-spacing:1px">DOMAIN EXPANSION</span></div><div class="head-right"><span class="tag">ONLINE + LOCAL MULTIPLAYER FIGHTER</span><span id="audioNow" class="audio-now" aria-live="polite">OST READY</span><button class="sound" id="muteButton" type="button" title="Mute all music and effects">♫ SOUND ON</button><button class="sound" id="musicToggle" type="button" title="Toggle background music">♪ MUSIC ON</button><button class="sound" id="audioSettings" type="button" aria-controls="audioPanel" aria-expanded="false" title="Audio settings">⚙ AUDIO</button></div></header>
+  <header id="head"><div class="logo">MAXIMUM <span>OUTPUT:</span> ZERO <span style="color:#778fac;font-size:10px;font-style:normal;letter-spacing:1px">DOMAIN EXPANSION</span></div><div class="head-right"><span class="tag">ONLINE + LOCAL MULTIPLAYER FIGHTER</span><span id="audioNow" class="audio-now" aria-live="polite">OST READY</span><button class="sound" id="muteButton" type="button" title="Mute all music and effects">♫ SOUND ON</button><button class="sound" id="musicToggle" type="button" title="Toggle background music">♪ MUSIC ON</button><button class="sound" id="audioSettings" type="button" aria-controls="audioPanel" aria-expanded="false" title="Audio settings">⚙ AUDIO</button><button class="sound" id="keySettings" type="button" aria-controls="keyPanel" aria-expanded="false" title="Keybindings and controller">⌨ KEYS</button></div></header>
   <section id="audioPanel" class="audio-panel hidden" aria-label="Soundtrack and audio settings">
     <h3>ORIGINAL SOUNDTRACK</h3><p id="trackDescription">Four original tracks that automatically respond to the fight. Music starts after your first interaction.</p>
     <label for="musicVolume">MUSIC VOLUME <span id="musicVolText">45%</span></label><input id="musicVolume" type="range" min="0" max="100" step="1" value="45" />
@@ -146,6 +163,13 @@
     <label for="musicPreview">SOUNDTRACK PREVIEW</label><select id="musicPreview"><option value="auto">AUTO · MATCH REACTIVE</option><option value="menu">ZERO HORIZON · MENU</option><option value="battle">CURSED CIRCUIT · BATTLE</option><option value="domain">BARRIER COLLAPSE · DOMAIN</option><option value="victory">FINAL VERDICT · VICTORY</option></select>
     <div class="audio-credit">Original instrumental soundtrack included in <b>public/music/</b>. Replace an MP3 with your own licensed recording using the same filename.</div>
     <button class="hbtn" type="button" id="closeAudio">CLOSE AUDIO SETTINGS</button>
+  </section>
+  <section id="keyPanel" class="audio-panel key-panel hidden" aria-label="Keyboard and controller settings">
+    <h3>KEYBINDS · PLAYER 1</h3><p>Click a key, then press the key you want. If that key is already taken, the two actions swap. Online rooms use this same layout on every device.</p>
+    <div id="keyRows"></div>
+    <div class="pad-line" id="padStatus">🎮 NO CONTROLLER DETECTED</div>
+    <p class="key-note" id="padHint">Connect a PlayStation, Xbox or Switch controller and press any button. Left stick or D-pad moves, ✕/A jumps, □/X strikes, △/Y uses your technique, ○/B guards, L1 dashes, R1 cycles, L2 heals, R2 opens your Domain, R3 fires Maximum, Options sends an emote. Keyboard and controller work at the same time.</p>
+    <div class="key-actions"><button class="hbtn" type="button" id="keyReset">RESTORE DEFAULTS</button><button class="hbtn" type="button" id="keyClose">CLOSE</button></div>
   </section>
   <section class="stage" aria-label="2D fighting game"><canvas id="game" width="1360" height="765"></canvas><div id="screenLayer">
     <div class="overlay title-overlay" id="titleScreen" aria-label="Title screen">
@@ -185,9 +209,10 @@
       <div class="menu-section-head"><div><div class="eyebrow">03 / PLAYER ASSIGNMENTS</div><h2>BUILD YOUR LINEUP</h2></div><span>CLICK SLOT THEN FIGHTER OR USE ARROWS</span></div>
       <div class="selectors" id="selectors"></div>
       <div class="menu-ready"><div class="ready-sigil">✦</div><div><b>THE BARRIER IS READY</b><p>Pick your team, then enter a 150-second sorcery duel.</p></div><button class="start" id="startButton" type="button">CHOOSE ARENA <span>↗</span></button><button class="online-call" id="openOnlineButton" type="button">🌐 PLAY ON SEPARATE CHROMEBOOKS</button></div>
-      <div class="menu-footer"><button class="hbtn" type="button" id="guideButton">⌨ HOW TO PLAY + MOVE GUIDE</button><button class="hbtn" type="button" id="rosterBack">← TITLE SCREEN</button><span class="note">Choose Online Play to give every person their own keyboard, or keep Local Battle for one shared computer.<br>Keyboard ghosting can limit some simultaneous keys.</span></div>
+      <div class="menu-footer"><button class="hbtn" type="button" id="guideButton">⌨ HOW TO PLAY + MOVE GUIDE</button><button class="hbtn" type="button" id="creditsButton">★ CREDITS</button><button class="hbtn" type="button" id="rosterBack">← TITLE SCREEN</button><span class="note">Choose Online Play to give every person their own keyboard, or keep Local Battle for one shared computer.<br>Keyboard ghosting can limit some simultaneous keys.</span></div>
     </div></div>
     <div class="paused hidden" id="pauseOverlay"><div class="endbox"><div class="eyebrow" id="endKicker">CURSE ENERGY // SUSPENDED</div><h2 id="endTitle">PAUSED</h2><p id="endDescription">Press Escape to return to the fight.</p><div class="row" style="justify-content:center"><button class="start" type="button" id="resumeButton">RESUME</button><button class="hbtn" type="button" id="rematchButton">REMATCH</button><button class="hbtn" type="button" id="menuButton">CHARACTER SELECT</button></div></div></div>
+    <div class="overlay hidden" id="creditsOverlay" role="dialog" aria-label="Credits" style="z-index:17"><div class="endbox credits-box"><div class="eyebrow">MAXIMUM OUTPUT: ZERO // CREDITS</div><h2>THE CURSE BEHIND THE GAME</h2><div class="credit-names"><div class="credit-name">SAMUEL<small>GAME DESIGN · DEVELOPMENT</small></div><div class="credit-name">ATEEB<small>DEVELOPMENT · COMBAT SYSTEMS</small></div><div class="credit-name">WENDAO<small>DEVELOPMENT · VISUAL SYSTEMS</small></div></div><p>Built as an original browser fighting game. Thank you for playing.</p><div class="row" style="justify-content:center"><button class="start" type="button" id="creditsClose">RETURN</button></div></div></div>
   </div></section>
   <div id="touchControls" class="touch-controls" aria-label="Mobile game controller">
     <div class="touch-instructions">TOUCH CONTROLS / PLAYER 1 <span>For 2 or 3 players, separate devices with an online room work best. Turn your device sideways.</span></div>
@@ -216,7 +241,7 @@
       <section class="guide-fighter kitsune"><h3>↗ KITSUNE <small>VECTOR TAP</small></h3><p><b>Technique:</b> Trajectory Strike. <b>Down + Technique:</b> Velocity Siphon, max 10 uses per match. <b>Guard + Technique:</b> Refraction Barrier, reducing or reflecting incoming strikes. <b>Cycle:</b> charge a Kinetic Loop; the next Technique launches a powerful vector blast. <b>Maximum:</b> Vector Cannon, a gameplay adaptation of Kinetic Loop. <b>Domain:</b> Intersectional Compass, redirecting movement and looping unavoidable vectors.</p></section>
       <section class="guide-fighter arashi"><h3>༄ ARASHI <small>DISASTER WIND</small></h3><p><b>Technique:</b> Tempest compressed-air blades. <b>Down + Technique:</b> Repelling Monsoon. <b>Guard + Technique:</b> Storm Veil. <b>Cycle:</b> Gale Step. <b>Maximum:</b> Zephyr charges a precision strike; hit with Attack within five seconds or the charge disappears. <b>Domain:</b> Eye of the Silent Hurricane progressively drains CE and mobility.</p></section>
     </div>
-    <div class="guide-footer"><b>SIMPLE DOMAIN:</b> Every fighter holds Guard and presses Domain to create a small defensive barrier for 3.3 seconds. Costs 24 CE with a 9.5-second cooldown. Cancels sure-hit attacks but does not break Jin's no-violence wager rules or automatically win Domain clashes.<br><b>JIN SELF-CARDS:</b> hold Guard + Technique to put the currently chosen card on Jin himself; Down + Guard + Technique activates Providence Siphon. <b>ARATA OVER OVERDRIVE:</b> tap Down three times within 1.05 seconds when CE is at least 85. Lasts 6 seconds, once per match, with a 10-second burnout. <b>DOMAIN CLASH:</b> 12 seconds of real movement and strikes, virtual damage only, largest total dealt wins. All actual HP stays frozen. <b>JIN DOMAIN WAGERS:</b> Once the rules appear, Jin chooses a stake with his Left / Right or Cycle key, or clicks one of five wager cards in the arena. Attack or Domain confirms. The wheel spins for each bet. Nonviolence is absolute, including projectiles already on screen. The bet is automatically mirrored on all living players in 2P or 3P. The result is 90% House / 10% challengers, independent of luck. Five spins closes the Domain. <b>ARATA:</b> impossible-to-dodge confusion pulses, Momentum locked at 200%. <b>SHIROGANE:</b> unavoidable prism rays and reflected Luminal Lash attacks.<br><br>Online play: Every player uses the Player 1 (WASD, F/G/H) controls on their OWN Chromebook. To start an online game, create a room, share its link, then select characters and ready up. Local multiplayer is best on a full keyboard. Use <b>ESC</b> to pause. All special costs and time limits are shortened from the character lore to keep individual matches playable.</div>
+    <div class="guide-footer"><b>SIMPLE DOMAIN:</b> Every fighter holds Guard and presses Domain to create a small defensive barrier for 3.3 seconds. Costs 24 CE with a 9.5-second cooldown. Cancels sure-hit attacks but does not break Jin's no-violence wager rules or automatically win Domain clashes.<br><b>JIN SELF-CARDS:</b> hold Guard + Technique to put the currently chosen card on Jin himself; Down + Guard + Technique activates Providence Siphon. <b>ARATA OVER OVERDRIVE:</b> tap Down three times within 1.05 seconds when CE is at least 85. Lasts 6 seconds, once per match, with a 10-second burnout. <b>DOMAIN CLASH:</b> 12 seconds of real movement and strikes, virtual damage only, largest total dealt wins. All actual HP stays frozen. <b>JIN DOMAIN WAGERS:</b> Once the rules appear, Jin chooses a stake with his Left / Right or Cycle key, or clicks one of five wager cards in the arena. Attack or Domain confirms. The wheel spins for each bet. Nonviolence is absolute, including projectiles already on screen. The bet is automatically mirrored on all living players in 2P or 3P. The result is 90% House / 10% challengers, independent of luck. Five spins closes the Domain. <b>ARATA:</b> impossible-to-dodge confusion pulses, Momentum locked at 200%. <b>SHIROGANE:</b> unavoidable prism rays and reflected Luminal Lash attacks.<br><b>CONTROLLERS & EMOTES:</b> Connect a PlayStation, Xbox or Switch controller and press any button to use the standard gamepad layout for Player 1. Press <b>T</b> (or Options on a controller) to open the emote palette, then press the same key again to send the highlighted emote; Left / Right changes the selection. Every Player 1 action, including the emote key, can be rebound from <b>⌨ KEYS</b> in the top bar.<br><br>Online play: Every player uses the Player 1 (WASD, F/G/H) controls on their OWN Chromebook. To start an online game, create a room, share its link, then select characters and ready up. Local multiplayer is best on a full keyboard. Use <b>ESC</b> to pause. All special costs and time limits are shortened from the character lore to keep individual matches playable.</div>
     <div class="live-help"><div class="live-help-grid" id="liveHelpGrid"></div></div>
   </div>
 </div>
@@ -229,7 +254,7 @@
       <label for="netName" class="eyebrow">YOUR PLAYER NAME</label>
       <input id="netName" class="net-input" maxlength="22" placeholder="Your nickname" value="Sorcerer" autocomplete="nickname" />
       <div class="net-split" style="margin-top:18px">
-        <div class="net-panel"><h3>HOST A MATCH</h3><p class="net-sub">Create a new room using the currently selected 2-player or 3-player mode. Others join with the invitation link.</p><button class="net-primary" id="netCreate" type="button">CREATE ROOM</button></div>
+        <div class="net-panel"><h3>HOST A MATCH</h3><p class="net-sub">Choose the room size, then share the invitation link. Others join with the code or link.</p><div class="net-char-picks" id="netRoomSize" aria-label="Room size"><button type="button" data-size="2" class="active">2 PLAYERS</button><button type="button" data-size="3">3 PLAYERS</button></div><button class="net-primary" id="netCreate" type="button">CREATE ROOM</button></div>
         <div class="net-panel"><h3>JOIN A FRIEND</h3><label for="netJoinCode">6-CHARACTER ROOM CODE</label><input id="netJoinCode" class="net-input" placeholder="ABC123" maxlength="6" autocomplete="off" style="text-transform:uppercase" /><button class="net-primary" id="netJoin" type="button">JOIN ROOM</button></div>
       </div>
     </div>
@@ -259,7 +284,7 @@ const TAU=Math.PI*2;
 const roster=[
  {name:'Kisaragi Jin',short:'JIN',title:'THE CONCEPTUAL GAMBLER',color:'#e9c68a',glow:'#ffe6a5',dark:'#1b1a33',hp:300,speed:277,damage:1,energyRegen:8.4,desc:'HEAVENLY AXIOMS'},
  {name:'Arata Michizane',short:'ARATA',title:'THE UNSTOPPABLE PURSUER',color:'#59bfff',glow:'#81dfff',dark:'#10234a',hp:315,speed:293,damage:1.1,energyRegen:5.7,desc:'MOMENTUM'},
- {name:'Shirogane Aizawa',short:'SHIROGANE',title:'THE REFRACTED PHANTOM',color:'#b9a3ff',glow:'#edfdff',dark:'#181c38',hp:280,speed:324,damage:0.95,energyRegen:8.9,desc:'QUANTUM FLICKER'},
+ {name:'Shirogane Aizawa',short:'SHIROGANE',title:'THE REFRACTED PHANTOM',color:'#b9a3ff',glow:'#edfdff',dark:'#181c38',hp:265,speed:314,damage:0.95,energyRegen:8.0,desc:'QUANTUM FLICKER'},
  {name:'Hido Dakara',short:'HIDO',title:'CRYSTALLINE ARCHITECT',color:'#4fd8f5',glow:'#b0f5ff',dark:'#10253b',hp:290,speed:265,damage:1.02,energyRegen:8.1,desc:'TRIANGULAR GENESIS'},
  {name:'Kitsune',short:'KITSUNE',title:'VECTOR STRATEGIST',color:'#78f6be',glow:'#d0ffe9',dark:'#143229',hp:320,speed:310,damage:1.05,energyRegen:9.1,desc:'VECTOR TAP'},
  {name:'Arashi',short:'ARASHI',title:'DISASTER WIND',color:'#d2a4fa',glow:'#e8daff',dark:'#251d42',hp:300,speed:307,damage:.99,energyRegen:8.6,desc:'DISASTER WIND'}
@@ -279,14 +304,14 @@ const cards=[
 ];
 const icons=['♠','⟶','◇','△','↗','༄'];
 const maps=[
- {left:'KeyA',right:'KeyD',up:'KeyW',down:'KeyS',attack:'KeyF',skill:'KeyG',guard:'KeyH',cycle:'KeyQ',super:'KeyR',domain:'KeyE',rct:'KeyC',dash:'ShiftLeft'},
- {left:'ArrowLeft',right:'ArrowRight',up:'ArrowUp',down:'ArrowDown',attack:'KeyJ',skill:'KeyK',guard:'KeyL',cycle:'KeyU',super:'KeyI',domain:'KeyO',rct:'KeyP',dash:'ShiftRight'},
- {left:'Numpad4',right:'Numpad6',up:'Numpad8',down:'Numpad5',attack:'Numpad1',skill:'Numpad2',guard:'Numpad3',cycle:'Numpad7',super:'Numpad9',domain:'Numpad0',rct:'NumpadDecimal',dash:'NumpadEnter'}
+ {left:'KeyA',right:'KeyD',up:'KeyW',down:'KeyS',attack:'KeyF',skill:'KeyG',guard:'KeyH',cycle:'KeyQ',super:'KeyR',domain:'KeyE',rct:'KeyC',dash:'ShiftLeft',emote:'KeyT'},
+ {left:'ArrowLeft',right:'ArrowRight',up:'ArrowUp',down:'ArrowDown',attack:'KeyJ',skill:'KeyK',guard:'KeyL',cycle:'KeyU',super:'KeyI',domain:'KeyO',rct:'KeyP',dash:'ShiftRight',emote:'Semicolon'},
+ {left:'Numpad4',right:'Numpad6',up:'Numpad8',down:'Numpad5',attack:'Numpad1',skill:'Numpad2',guard:'Numpad3',cycle:'Numpad7',super:'Numpad9',domain:'Numpad0',rct:'NumpadDecimal',dash:'NumpadEnter',emote:'NumpadAdd'}
 ];
 let arenaIndex=0,menuPage='title',cameraKick=0,combatNoticeAt=0;const ARENA_NAMES=['RUINED CITY','ABANDONED SHRINE','ROOFTOP AT NIGHT','UNDERGROUND ARENA'];const ARENA_DETAILS=['Ash drifts through the broken skyline.','Ancient gates stand where the forest reclaimed the temple.','Moonlight and neon meet above the city.','A brutal concrete ring beneath flickering floodlights.'];
 let mode=2,selected=[0,1,2],phase='menu',paused=false,players=[],projectiles=[],particles=[],popups=[],effects=[],texts=[],shakes=0,freeze=0,time=90,domain=null,clash=null,domainBurst=0,round=1,frame=0,dtLast=0,announcer=null,annTimer=0,lastWinner=-1,activeMouse=null,muted=false,audio=null,domainIntro=null;
-const pressed=new Set(),held=new Set(),touchHeld=new Set(),touchPressed=new Set();
-const net={active:false,host:false,room:'',token:'',slot:0,members:[],status:'lobby',stream:null,seq:0,lastSent:0,lastReceived:0,lastHelp:0,init:false};
+const pressed=new Set(),held=new Set(),touchHeld=new Set(),touchPressed=new Set(),padHeld=new Set(),padPressed=new Set();
+const net={active:false,host:false,room:'',token:'',slot:0,members:[],status:'lobby',mode:2,stream:null,seq:0,lastSent:0,lastReceived:0,lastHelp:0,init:false};
 const netHeld=new Map(),netPressed=new Map();
 
 const numberAliases={Numpad4:'Digit4',Numpad6:'Digit6',Numpad8:'Digit8',Numpad5:'Digit5',Numpad1:'Digit1',Numpad2:'Digit2',Numpad3:'Digit3',Numpad7:'Digit7',Numpad9:'Digit9',Numpad0:'Digit0',NumpadDecimal:'Period',NumpadEnter:'Enter'};
@@ -297,8 +322,8 @@ let focusedSlot=0;function refreshRosterSelection(){document.querySelectorAll('.
 function getOptions(){el('selectors').innerHTML='';for(let i=0;i<mode;i++){const div=document.createElement('div');div.className='selector';div.tabIndex=0;div.addEventListener('click',e=>{focusedSlot=i;refreshRosterSelection()});div.addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='Space'){focusedSlot=i;refreshRosterSelection()}});div.innerHTML=`<label>PLAYER ${i+1} · ${['BLUE','RED','PURPLE'][i]}</label><div class="row" style="flex-wrap:nowrap;gap:5px"><button class="arrow" data-slot="${i}" data-d="-1" aria-label="Previous character">‹</button><div class="select-name" id="slot${i}">${roster[selected[i]].name}</div><button class="arrow" data-slot="${i}" data-d="1" aria-label="Next character">›</button></div>`;el('selectors').appendChild(div)}el('selectors').querySelectorAll('.arrow').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.slot;selected[i]=(selected[i]+roster.length+(+b.dataset.d))%roster.length;el('slot'+i).textContent=roster[selected[i]].name;focusedSlot=i;refreshRosterSelection();sound('card')}));refreshRosterSelection()}
 document.querySelectorAll('.fighter').forEach((card,i)=>{card.tabIndex=0;card.setAttribute('role','button');const choose=()=>{selected[focusedSlot]=i;const label=el('slot'+focusedSlot);if(label)label.textContent=roster[i].name;refreshRosterSelection();sound('card')};card.addEventListener('click',choose);card.addEventListener('keydown',e=>{if(e.code==='Enter'||e.code==='Space'){e.preventDefault();choose()}})});
 el('mode2').addEventListener('click',()=>{mode=2;focusedSlot=0;el('mode2').classList.add('active');el('mode3').classList.remove('active');getOptions()});el('mode3').addEventListener('click',()=>{mode=3;focusedSlot=0;el('mode3').classList.add('active');el('mode2').classList.remove('active');getOptions()});getOptions();
-function player(i,id){const cfg=roster[id];return {id:i,kind:id,cfg,map:maps[i],x:(i===0?275:i===1?1080:676),y:FLOOR,vx:0,vy:0,face:i===1?-1:1,w:38,h:100,hp:cfg.hp,maxHp:cfg.hp,ce:100,awakening:0,momentum:0,guard:false,resistance:false,guardStart:0,invuln:0,stun:0,attackAnim:0,attackCd:0,attackCount:0,lastAttack:0,dashCd:0,dashTime:0,dashTrail:0,damageGlow:0,blockGlow:0,superTime:0,burnout:0,blackStreak:0,lastBlack:-100,snapshot:null,clones:[],cloneWave:0,cardIndex:0,cardCd:{},jokers:2,luck:30,clubCharge:0,heartSnare:0,diamondArmor:0,domainTimer:0,ko:false,hitCount:0,dodgeCount:0,objective: 'Defeat the opposition',goal60:60,stale:0,overdriveUsed:false,ultimateLock:false,lastSkill:0,coolDown:0,pose:0,step:0,ring:null,chronal:0,ultFx:0,comboFlash:0,lockedMove:0,queuedMove:0,queuedTechnique:0,domainConfusion:0,attackStyle:'jab',kickAnim:0,selfEdge:0,selfBattery:0,selfAnchor:0,overOverTime:0,overOverUsed:false,downTaps:[],downHint:0,simpleDomain:0,simpleCd:0,triangles:8000,construct:0,constructTimer:0,extraArms:0,armTimer:0,trapX:null,shieldTime:0,vectorBarrier:0,siphons:10,loopCharge:0,windCharge:0,zephyrWindow:0,zephyrUsed:false,rctLock:0,gravityTag:0,comboHits:0,comboTimer:0,comboDamage:0,counterWindow:0,airJuggle:0,wallBounceCd:0,comboTarget:-1,comboVisual:0};}
-function start(){document.body.classList.add('playing');domainIntro=null;players=[];for(let i=0;i<mode;i++)players.push(player(i,selected[i]));players.forEach(p=>{p.objective=`DEFEAT ${players.filter(e=>e!==p).map(e=>e.cfg.short).join(' + ')}`});projectiles=[];particles=[];effects=[];popups=[];held.clear();pressed.clear();touchHeld.clear();touchPressed.clear();domain=null;clash=null;domainIntro=null;domainBurst=0;announcer=null;annTimer=0;freeze=0;shakes=0;time=150;round=1;phase='game';paused=false;lastWinner=-1;MAIN.classList.add('hidden');el('titleScreen').classList.add('hidden');el('arenaScreen').classList.add('hidden');END.classList.add('hidden');HELP.classList.remove('show');el('helpButton').textContent='⌨ CONTROLS';window.scrollTo({top:0,behavior:'instant'});el('stateLabel').textContent=mode===2?'2 PLAYER DUEL':'3 PLAYER FREE-FOR-ALL';el('statusHint').textContent='Full moves and character tips in CONTROLS';el('pauseButton').textContent='Ⅱ PAUSE';announce('ROUND 01',ARENA_NAMES[arenaIndex]+' · BEGIN!',2.1,'#f1faff');refreshLiveHelp();sound('domain')}
+function player(i,id){const cfg=roster[id];return {id:i,kind:id,cfg,map:maps[i],x:(i===0?275:i===1?1080:676),y:FLOOR,vx:0,vy:0,face:i===1?-1:1,w:38,h:100,hp:cfg.hp,maxHp:cfg.hp,ce:100,awakening:0,momentum:0,guard:false,resistance:false,guardStart:0,invuln:0,stun:0,attackAnim:0,attackCd:0,attackCount:0,lastAttack:0,dashCd:0,dashTime:0,dashTrail:0,damageGlow:0,blockGlow:0,superTime:0,burnout:0,blackStreak:0,lastBlack:-100,snapshot:null,clones:[],cloneWave:0,cardIndex:0,cardCd:{},jokers:2,luck:30,clubCharge:0,heartSnare:0,diamondArmor:0,domainTimer:0,ko:false,hitCount:0,dodgeCount:0,objective: 'Defeat the opposition',goal60:60,stale:0,overdriveUsed:false,ultimateLock:false,lastSkill:0,coolDown:0,pose:0,step:0,ring:null,chronal:0,ultFx:0,comboFlash:0,lockedMove:0,queuedMove:0,queuedTechnique:0,domainConfusion:0,attackStyle:'jab',kickAnim:0,selfEdge:0,selfBattery:0,selfAnchor:0,overOverTime:0,overOverUsed:false,downTaps:[],downHint:0,simpleDomain:0,simpleCd:0,triangles:8000,construct:0,constructTimer:0,extraArms:0,armTimer:0,trapX:null,shieldTime:0,vectorBarrier:0,siphons:10,loopCharge:0,windCharge:0,zephyrWindow:0,zephyrUsed:false,rctLock:0,gravityTag:0,comboHits:0,comboTimer:0,comboDamage:0,counterWindow:0,airJuggle:0,wallBounceCd:0,comboTarget:-1,comboVisual:0,emoteOpen:false,emoteIndex:0,emoteClock:0,emoteTime:0,emoteGlyph:'',emoteLabel:'',emoteColor:'#eaf8ff',emoteCd:0};}
+function start(){document.body.classList.add('playing');domainIntro=null;players=[];for(let i=0;i<mode;i++)players.push(player(i,selected[i]));players.forEach(p=>{p.objective=`DEFEAT ${players.filter(e=>e!==p).map(e=>e.cfg.short).join(' + ')}`});projectiles=[];particles=[];effects=[];popups=[];held.clear();pressed.clear();touchHeld.clear();touchPressed.clear();padPressed.clear();domain=null;clash=null;domainIntro=null;domainBurst=0;announcer=null;annTimer=0;freeze=0;shakes=0;time=150;round=1;phase='game';paused=false;lastWinner=-1;MAIN.classList.add('hidden');el('titleScreen').classList.add('hidden');el('arenaScreen').classList.add('hidden');END.classList.add('hidden');HELP.classList.remove('show');el('helpButton').textContent='⌨ CONTROLS';window.scrollTo({top:0,behavior:'instant'});el('stateLabel').textContent=mode===2?'2 PLAYER DUEL':'3 PLAYER FREE-FOR-ALL';el('statusHint').textContent='Full moves and character tips in CONTROLS';el('pauseButton').textContent='Ⅱ PAUSE';announce('ROUND 01',ARENA_NAMES[arenaIndex]+' · BEGIN!',2.1,'#f1faff');refreshLiveHelp();sound('domain')}
 function showMenuPage(page){menuPage=page;const onMenu=phase==='menu';el('titleScreen').classList.toggle('hidden',!onMenu||page!=='title');MAIN.classList.toggle('hidden',!onMenu||page!=='roster');el('arenaScreen').classList.toggle('hidden',!onMenu||page!=='arena');}
 function showArena(){if(phase!=='menu')return;showMenuPage('arena');}
 function showRoster(){if(phase!=='menu')return;showMenuPage('roster');}
@@ -368,7 +393,7 @@ function updateSoundtrack(dt){
   if(activeVolume===0&&a.volume<.002&&!a.paused)a.pause();
  }
 }
-function openAudioPanel(open){el('audioPanel').classList.toggle('hidden',!open);el('audioSettings').setAttribute('aria-expanded',String(open));}
+function openAudioPanel(open){el('audioPanel').classList.toggle('hidden',!open);el('audioSettings').setAttribute('aria-expanded',String(open));if(open)el('keyPanel').classList.add('hidden');}
 el('audioSettings').addEventListener('click',()=>openAudioPanel(el('audioPanel').classList.contains('hidden')));
 el('closeAudio').addEventListener('click',()=>openAudioPanel(false));
 el('muteButton').addEventListener('click',()=>{muted=!muted;if(!muted){sound('card');tryPlayMusic(musicForState())}refreshMusicDisplay()});
@@ -381,18 +406,23 @@ refreshMusicDisplay();
 // ---- END ORIGINAL ADAPTIVE SOUNDTRACK ----
 function togglePause(force){if(net.active&&!net.host)return;if(phase!=='game'&&phase!=='end')return;paused=force===undefined?!paused:force;END.classList.toggle('hidden',!paused&&phase!=='end');if(phase==='end')return;el('endKicker').textContent='CURSE ENERGY // SUSPENDED';el('endTitle').textContent='PAUSED';el('endDescription').textContent='Take a moment to plan your next technique. Press Escape to resume.';el('resumeButton').classList.remove('hidden');el('resumeButton').textContent='RESUME';el('pauseButton').textContent=paused?'▶ RESUME':'Ⅱ PAUSE'}
 el('pauseButton').addEventListener('click',()=>{if(phase==='game')togglePause()});el('resumeButton').addEventListener('click',()=>{if(phase==='game')togglePause(false)});el('rematchButton').addEventListener('click',()=>{if(net.active){if(net.host)netToLobby();else netShowMessage('Only the host can start the next match.');return}start()});el('menuButton').addEventListener('click',()=>{if(net.active){if(net.host)netToLobby();else netShowMessage('Only the host can return to the room lobby.');return}phase='menu';document.body.classList.remove('playing');paused=false;held.clear();END.classList.add('hidden');showMenuPage('roster')});el('helpButton').addEventListener('click',()=>{HELP.classList.toggle('show');el('helpButton').textContent=HELP.classList.contains('show')?'⌨ CLOSE MOVE GUIDE':'⌨ CONTROLS';if(HELP.classList.contains('show'))setTimeout(()=>HELP.scrollIntoView({behavior:'smooth',block:'nearest'}),40)});el('guideButton').addEventListener('click',()=>{HELP.classList.add('show');el('helpButton').textContent='⌨ CLOSE MOVE GUIDE';setTimeout(()=>HELP.scrollIntoView({behavior:'smooth',block:'start'}),70)});
-const keysToCapture=new Set(maps.flatMap(Object.values).concat(Object.values(numberAliases),['Escape','Enter','Space']));
-window.addEventListener('keydown',e=>{if(keysToCapture.has(e.code))e.preventDefault();if(e.code==='Escape'){if(!e.repeat)togglePause();return}if(e.repeat)return;held.add(e.code);pressed.add(e.code);if(phase==='game'&&!paused)for(const p of players){if((!net.active||net.host&&p.id===net.slot)&&p.kind===1&&(e.code===p.map.down||(p.id===2&&e.code===numberAliases[p.map.down]))){const now=performance.now();p.downTaps=p.downTaps.filter(t=>now-t<=1050);p.downTaps.push(now);if(p.downTaps.length>=3){p.downTaps=[];activateOverOverdrive(p)}}}if(phase==='end'&&e.code==='Enter')start()});window.addEventListener('keyup',e=>{held.delete(e.code)});window.addEventListener('blur',()=>{held.clear();pressed.clear();touchHeld.clear();touchPressed.clear();if(phase==='game'&&!paused)togglePause(true)});
+el('creditsButton').addEventListener('click',()=>el('creditsOverlay').classList.remove('hidden'));
+el('creditsClose').addEventListener('click',()=>el('creditsOverlay').classList.add('hidden'));
+let keysToCapture=new Set(maps.flatMap(Object.values).concat(Object.values(numberAliases),['Escape','Enter','Space']));
+function rebuildKeysToCapture(){keysToCapture=new Set(maps.flatMap(Object.values).concat(Object.values(numberAliases),['Escape','Enter','Space']))}
+// Text fields must receive every letter, including keys the game normally captures.
+function isTextEntry(target){return !!target&&(target.tagName==='INPUT'||target.tagName==='TEXTAREA'||target.tagName==='SELECT'||target.isContentEditable)}
+window.addEventListener('keydown',e=>{if(isTextEntry(e.target))return;if(captureKeybind(e)){e.preventDefault();return}if(keysToCapture.has(e.code))e.preventDefault();if(e.code==='Escape'){if(!e.repeat)togglePause();return}if(e.repeat)return;held.add(e.code);pressed.add(e.code);if(phase==='game'&&!paused)for(const p of players){if((!net.active||net.host&&p.id===net.slot)&&p.kind===1&&(e.code===p.map.down||(p.id===2&&e.code===numberAliases[p.map.down]))){const now=performance.now();p.downTaps=p.downTaps.filter(t=>now-t<=1050);p.downTaps.push(now);if(p.downTaps.length>=3){p.downTaps=[];activateOverOverdrive(p)}}}if(phase==='end'&&e.code==='Enter')start()});window.addEventListener('keyup',e=>{if(isTextEntry(e.target))return;held.delete(e.code)});document.addEventListener('focusin',e=>{if(isTextEntry(e.target)){held.clear();pressed.clear()}});window.addEventListener('blur',()=>{held.clear();pressed.clear();touchHeld.clear();touchPressed.clear();padHeld.clear();padPressed.clear();if(phase==='game'&&!paused)togglePause(true)});
 function down(p,k){
  if(net.active&&net.host&&p.id!==net.slot)return netHeld.get(p.id)?.has(k)||false;
  if(net.active&&!net.host)return false;
- if(p.id===0&&touchHeld.has(k))return true;
+ if(p.id===0&&(touchHeld.has(k)||padHeld.has(k)))return true;
  const key=(net.active?maps[0]:p.map)[k];return held.has(key)||(!net.active&&p.id===2&&held.has(numberAliases[key]));
 }
 function tap(p,k){
  if(net.active&&net.host&&p.id!==net.slot)return netPressed.get(p.id)?.has(k)||false;
  if(net.active&&!net.host)return false;
- if(p.id===0&&touchPressed.has(k))return true;
+ if(p.id===0&&(touchPressed.has(k)||padPressed.has(k)))return true;
  const key=(net.active?maps[0]:p.map)[k];return pressed.has(key)||(!net.active&&p.id===2&&pressed.has(numberAliases[key]));
 }
 function announce(top,bottom,t=1.5,col='#e5f5ff'){announcer={top,bottom,col};annTimer=t}
@@ -463,7 +493,7 @@ function genesisSkill(p){
  const styles=['SWORD','SPEAR','SHIELD','CHAIN'];
  if(p.construct===2){p.shieldTime=2.5;p.diamondArmor=Math.max(p.diamondArmor,2.5);popup(p.x,p.y-140,'CREATION · TRIANGLE SHIELD',p.cfg.glow,13)}
  else{const range=p.construct===1?1150:850,damage=p.construct===1?35:p.construct===3?22:27;
- spawnProjectile({owner:p,x:p.x+p.face*45,y:p.y-70,vx:p.face*range,vy:0,r:p.construct===1?18:13,kind:'triangle',color:'#70e7fa',damage,knock:390,life:1.4,pierce:false});
+ spawnProjectile({owner:p,x:p.x+p.face*45,y:p.y-70,vx:p.face*range,vy:0,r:p.construct===1?18:13,kind:'triangle',weapon:p.construct,color:'#70e7fa',damage,knock:390,life:1.4,pierce:false});
  if(p.construct===3){p.trapX=clamp(p.x+p.face*190,70,W-70);popup(p.x,p.y-145,'CREATION · CHAIN TRAP',p.cfg.glow,13)}else popup(p.x,p.y-145,'CREATION · '+styles[p.construct],p.cfg.glow,13)}
  sound('card');
 }
@@ -486,6 +516,9 @@ function specialGuard(p){
 function attack(p){
  if(domain&&domain.type===0)return;
  if(p.stun>0||p.attackCd>0||p.ko)return;
+ // An attack commits the fighter; guard frames never carry through the swing,
+ // so holding Guard and striking both stay reliable without stacking defense.
+ p.guardStart=0;p.guard=false;
  // A JUST GUARD arms a deliberate counter. It must be triggered with Attack.
  if(p.counterWindow>0){
   p.counterWindow=0;p.attackCd=.40;p.attackAnim=.39;p.attackStyle='counter';p.pose=.4;
@@ -537,7 +570,7 @@ function deal(src,tgt,amount,opts={}){if(tgt.ko||(domain&&domain.type===0&&!clas
  if(!opts.surehit&&tgt.diamondArmor>0)damage*=.2;
  if(!opts.surehit&&tgt.vectorBarrier>0){damage*=.24;blocked=true;if(src&&src!==tgt&&opts.source!=='domain'){src.stun=Math.max(src.stun,.15);src.vx=-dir*260;popup(tgt.x,tgt.y-155,'VECTOR REFRACTION',tgt.cfg.glow,12)}}
  if(tgt.windCharge>0&&!opts.surehit)damage*=.63;
- if(!opts.surehit&&tgt.kind===2&&tgt.clones.length>0&&Math.random()<.43){const clone=tgt.clones[Math.floor(Math.random()*tgt.clones.length)];clone.hits--;emission(clone.x,tgt.y-52,'#d8e9ff',18,180,.4);if(clone.hits<=0)tgt.clones.splice(tgt.clones.indexOf(clone),1);popup(tgt.x,tgt.y-130,'HOLOGRAM!', '#cbf9ff',15);return false}
+ if(!opts.surehit&&tgt.kind===2&&tgt.clones.length>0&&Math.random()<.30){const clone=tgt.clones[Math.floor(Math.random()*tgt.clones.length)];clone.hits--;emission(clone.x,tgt.y-52,'#d8e9ff',18,180,.4);if(clone.hits<=0)tgt.clones.splice(tgt.clones.indexOf(clone),1);popup(tgt.x,tgt.y-130,'HOLOGRAM!', '#cbf9ff',15);return false}
  if(tgt.heartSnare>0){damage*=1.08}if(tgt.selfBattery>0){tgt.clubCharge=clamp(tgt.clubCharge+damage*.7,0,220);damage*=.72;blocked=true}if(tgt.selfAnchor>0){damage*=.82}
  let crit=false;
  if(src&&!blocked&&opts.source==='strike'){let chance=src.kind===0?.04:src.kind===1?.02+(src.momentum/200)*.12:src.kind===4?.02:src.kind===5?.03:.01; if(Math.random()<chance&&src.blackStreak<5){crit=true;damage*=1.68;src.blackStreak++;src.lastBlack=performance.now()/1000;popup(tgt.x,tgt.y-168,'BLACK FLASH', '#da80ff',26);announce('BLACK FLASH',`${src.cfg.short} · ${src.blackStreak} CHAIN`,.65,'#e7acff');freeze=Math.max(freeze,.065);shakes=Math.max(shakes,17);sound('black')}}
@@ -592,16 +625,16 @@ function useSkill(p){if(domain&&domain.type===0)return;if(p.ko||p.stun>0||p.cool
  if(p.kind===3){genesisSkill(p);return}
  if(p.kind===4){vectorSkill(p);return}
  if(p.kind===5){windSkill(p);return}
- if(p.kind===2){if(down(p,'down')){if(!spend(p,10))return;const targets=players.filter(q=>q!==p&&!q.ko);const closest=targets.sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x))[0];p.invuln=.28;p.chronal=.25;p.x=clamp(closest?closest.x-(p.face*95):p.x+p.face*160,47,W-47);p.dashCd=.6;p.coolDown=.48;p.dashTrail=.45;p.attackAnim=.3;effects.push({kind:'warp',x:p.x,y:p.y-55,life:.6,max:.6,c:p.cfg.glow});splash(p.x,p.y-55,'#f3ecff',100);popup(p.x,p.y-138,'CHRONAL LAG',p.cfg.glow,14);sound('dash');return}
- if(!spend(p,21))return;p.coolDown=.55;p.attackAnim=.32;p.lastSkill=.3;for(let i=-1;i<=1;i++)spawnProjectile({owner:p,x:p.x+p.face*60,y:p.y-65+i*20,vx:p.face*1050,vy:i*105,r:9,kind:'lash',color:i===0?'#f9ffff':'#ad9eff',damage:17,knock:270,pierce:true,life:1.12});splash(p.x+p.face*90,p.y-65,'#ffffff',98);popup(p.x,p.y-149,'LUMINAL LASH','#e8faff',13);if(domain&&domain.type===2&&domain.owner===p.id){for(const t of players)if(t!==p&&!t.ko){deal(p,t,14,{source:'domain',surehit:true,dir:Math.sign(t.x-p.x),knock:45});for(let i=0;i<8;i++)effects.push({kind:'beam',x:rnd(30,W-30),y:rnd(80,FLOOR-100),endX:t.x+rnd(-50,50),endY:t.y-rnd(24,130),life:.4,max:.4,c:i%2?'#e5faff':'#b5b9ff'});}popup(p.x,p.y-174,'INFINITE REFLECTION',p.cfg.glow,14);}sound('big')}}
-function guardSpecial(p){if(p.kind===1&&p.stun<=0&&p.burnout<=0){p.resistance=p.momentum>0;if(p.resistance){p.momentum=clamp(p.momentum-.333,0,200);p.ce=clamp(p.ce-.07,0,100)}}else if(p.kind===2&&p.stun<=0&&p.coolDown<=0){if(p.snapshot){if(!spend(p,25))return;p.hp=Math.max(p.hp,p.snapshot.hp);p.ce=Math.max(p.ce,p.snapshot.ce-25);p.x=p.snapshot.x;p.y=p.snapshot.y;p.vy=0;p.stun=0;p.snapshot=null;popup(p.x,p.y-148,'MOMENT CAPTURE // REWIND','#e8faff',14);splash(p.x,p.y-60,'#dcf9ff',120)}else{if(!spend(p,25))return;p.snapshot={hp:p.hp,ce:p.ce,x:p.x,y:p.y};popup(p.x,p.y-148,'MOMENT CAPTURE // SAVED','#e8faff',14);splash(p.x,p.y-60,'#dcf9ff',120)}p.coolDown=.36;sound('heal')}
+ if(p.kind===2){if(down(p,'down')){if(!spend(p,15))return;const targets=players.filter(q=>q!==p&&!q.ko);const closest=targets.sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x))[0];p.invuln=.2;p.chronal=.2;p.x=clamp(closest?closest.x-(p.face*95):p.x+p.face*160,47,W-47);p.dashCd=.75;p.coolDown=.55;p.dashTrail=.45;p.attackAnim=.3;effects.push({kind:'warp',x:p.x,y:p.y-55,life:.6,max:.6,c:p.cfg.glow});splash(p.x,p.y-55,'#f3ecff',100);popup(p.x,p.y-138,'CHRONAL LAG',p.cfg.glow,14);sound('dash');return}
+ if(!spend(p,24))return;p.coolDown=.62;p.attackAnim=.32;p.lastSkill=.3;for(let i=-1;i<=1;i++)spawnProjectile({owner:p,x:p.x+p.face*60,y:p.y-65+i*20,vx:p.face*1050,vy:i*105,r:9,kind:'lash',color:i===0?'#f9ffff':'#ad9eff',damage:13,knock:270,pierce:true,life:1.12});splash(p.x+p.face*90,p.y-65,'#ffffff',98);popup(p.x,p.y-149,'LUMINAL LASH','#e8faff',13);if(domain&&domain.type===2&&domain.owner===p.id){for(const t of players)if(t!==p&&!t.ko){deal(p,t,14,{source:'domain',surehit:true,dir:Math.sign(t.x-p.x),knock:45});for(let i=0;i<8;i++)effects.push({kind:'beam',x:rnd(30,W-30),y:rnd(80,FLOOR-100),endX:t.x+rnd(-50,50),endY:t.y-rnd(24,130),life:.4,max:.4,c:i%2?'#e5faff':'#b5b9ff'});}popup(p.x,p.y-174,'INFINITE REFLECTION',p.cfg.glow,14);}sound('big')}}
+function guardSpecial(p){if(p.kind===1&&p.stun<=0&&p.burnout<=0){p.resistance=p.momentum>0;if(p.resistance){p.momentum=clamp(p.momentum-.333,0,200);p.ce=clamp(p.ce-.07,0,100)}}else if(p.kind===2&&p.stun<=0&&p.coolDown<=0){if(p.snapshot){if(!spend(p,30))return;const gain=clamp(p.snapshot.hp-p.hp,0,p.maxHp*.4);p.hp=clamp(p.hp+gain,0,p.maxHp);p.x=p.snapshot.x;p.y=p.snapshot.y;p.vy=0;p.stun=0;p.snapshot=null;popup(p.x,p.y-148,'MOMENT CAPTURE // REWIND','#e8faff',14);splash(p.x,p.y-60,'#dcf9ff',120)}else{if(!spend(p,30))return;p.snapshot={hp:p.hp,ce:p.ce,x:p.x,y:p.y};popup(p.x,p.y-148,'MOMENT CAPTURE // SAVED','#e8faff',14);splash(p.x,p.y-60,'#dcf9ff',120)}p.coolDown=.95;sound('heal')}
  else if(p.kind>=3){specialGuard(p)}
  else if(p.kind===0&&p.luck>=18){p.luck-=18;p.diamondArmor=Math.max(p.diamondArmor,1.2);popup(p.x,p.y-148,'PROVIDENCE SIPHON',p.cfg.glow,13);splash(p.x,p.y-55,'#e8d394',110)}}
-function cycle(p){if(p.kind===0){selectCard(p,down(p,'dash')?-1:1)}else if(p.kind===2){if(!spend(p,22))return;p.clones=Array.from({length:10},(_,i)=>({phase:i*TAU/10,hits:3,x:p.x}));p.cloneWave=5.4;popup(p.x,p.y-156,'EMULATION // 10 MIRRORS',p.cfg.glow,14);splash(p.x,p.y-50,p.cfg.glow,140);sound('card')}else if(p.kind===1){p.face*=-1;splash(p.x,p.y-50,p.cfg.color,60);popup(p.x,p.y-142,'CHANGE OF PACE',p.cfg.glow,12)}
+function cycle(p){if(p.kind===0){selectCard(p,down(p,'dash')?-1:1)}else if(p.kind===2){if(!spend(p,27))return;p.clones=Array.from({length:6},(_,i)=>({phase:i*TAU/6,hits:2,x:p.x}));p.cloneWave=4.2;popup(p.x,p.y-156,'EMULATION // 6 MIRRORS',p.cfg.glow,14);splash(p.x,p.y-50,p.cfg.glow,140);sound('card')}else if(p.kind===1){p.face*=-1;splash(p.x,p.y-50,p.cfg.color,60);popup(p.x,p.y-142,'CHANGE OF PACE',p.cfg.glow,12)}
  else if(p.kind===3){p.construct=(p.construct+1)%4;p.trapX=clamp(p.x+p.face*170,65,W-65);popup(p.x,p.y-142,['RECONSTRUCT · SWORD','RECONSTRUCT · SPEAR','RECONSTRUCT · SHIELD','RECONSTRUCT · CHAIN'][p.construct],p.cfg.glow,13)}
  else if(p.kind===4){if(spend(p,9)){p.loopCharge=5;popup(p.x,p.y-144,'KINETIC LOOP · CHARGING',p.cfg.glow,12);sound('card')}}
  else if(p.kind===5){p.face*=-1;p.invuln=Math.max(p.invuln,.13);p.dashTrail=.35;popup(p.x,p.y-142,'GALE STEP',p.cfg.glow,12)}}
-function healOrReversal(p){if(domain&&domain.type===0)return;if(p.ko||p.stun>0||p.burnout>0)return;if(p.rctLock>0){popup(p.x,p.y-141,'ZEPHYR · RCT SEALED','#ebc5ff',12);return}if(down(p,'down')){if(!spend(p,p.kind===1?43:36))return;p.coolDown=.55;let label='';if(p.kind===0){label='CTR: INVERSE DECREE';p.diamondArmor=2;for(const t of players)if(t!==p&&!t.ko&&Math.abs(t.x-p.x)<180)deal(p,t,17,{dir:Math.sign(t.x-p.x),knock:220,source:'ctr'})}else if(p.kind===1){label='CTR: INERTIA REVERSAL';for(const t of players){if(t===p||t.ko||Math.abs(t.x-p.x)>350)continue;t.vx=Math.sign(p.x-t.x)*550;t.stun=Math.max(t.stun,.45);deal(p,t,19,{dir:Math.sign(p.x-t.x),knock:370,source:'ctr'})}}else if(p.kind===2){label='CTR: NEGATIVE EXPOSURE';p.chronal=.4;for(const t of players)if(t!==p&&!t.ko&&Math.abs(t.x-p.x)<260)deal(p,t,24,{dir:Math.sign(t.x-p.x),knock:330,source:'ctr'})}else if(p.kind===3){label='CTR: CRYSTAL REFORGE';p.shieldTime=2;p.diamondArmor=2; p.triangles=clamp(p.triangles+160,0,8000)}else if(p.kind===4){label='CTR: REVERSE TRAJECTORY';p.vectorBarrier=2.5;for(const t of players)if(t!==p&&!t.ko&&Math.abs(t.x-p.x)<170)deal(p,t,19,{source:'ctr',knock:300})}else{label='CTR: STILL AIR';p.windCharge=3;for(const t of players)if(t!==p&&!t.ko&&Math.abs(t.x-p.x)<200)deal(p,t,18,{source:'ctr',knock:350})}popup(p.x,p.y-164,label,p.cfg.glow,14);splash(p.x,p.y-59,p.cfg.glow,320);sound('big');return}
+function healOrReversal(p){if(domain&&domain.type===0)return;if(p.ko||p.stun>0||p.burnout>0)return;if(p.rctLock>0){popup(p.x,p.y-141,'ZEPHYR · RCT SEALED','#ebc5ff',12);return}if(down(p,'down')){if(!spend(p,p.kind===1?43:36))return;p.coolDown=.55;let label='';if(p.kind===0){label='CTR: INVERSE DECREE';p.diamondArmor=2;for(const t of players)if(t!==p&&!t.ko&&Math.abs(t.x-p.x)<180)deal(p,t,17,{dir:Math.sign(t.x-p.x),knock:220,source:'ctr'})}else if(p.kind===1){label='CTR: INERTIA REVERSAL';for(const t of players){if(t===p||t.ko||Math.abs(t.x-p.x)>350)continue;t.vx=Math.sign(p.x-t.x)*550;t.stun=Math.max(t.stun,.45);deal(p,t,19,{dir:Math.sign(p.x-t.x),knock:370,source:'ctr'})}}else if(p.kind===2){label='CTR: NEGATIVE EXPOSURE';p.chronal=.4;for(const t of players)if(t!==p&&!t.ko&&Math.abs(t.x-p.x)<260)deal(p,t,19,{dir:Math.sign(t.x-p.x),knock:330,source:'ctr'})}else if(p.kind===3){label='CTR: CRYSTAL REFORGE';p.shieldTime=2;p.diamondArmor=2; p.triangles=clamp(p.triangles+160,0,8000)}else if(p.kind===4){label='CTR: REVERSE TRAJECTORY';p.vectorBarrier=2.5;for(const t of players)if(t!==p&&!t.ko&&Math.abs(t.x-p.x)<170)deal(p,t,19,{source:'ctr',knock:300})}else{label='CTR: STILL AIR';p.windCharge=3;for(const t of players)if(t!==p&&!t.ko&&Math.abs(t.x-p.x)<200)deal(p,t,18,{source:'ctr',knock:350})}popup(p.x,p.y-164,label,p.cfg.glow,14);splash(p.x,p.y-59,p.cfg.glow,320);sound('big');return}
  if(p.hp>=p.maxHp-1||!spend(p,p.kind===1?30:25))return;const v=p.kind===1?11+p.momentum/25:p.kind===0?26:23;p.hp=clamp(p.hp+v,0,p.maxHp);popup(p.x,p.y-142,'RCT +'+Math.round(v),'#89f3d6',16);emission(p.x,p.y-55,'#8af4c8',22,170,.7);sound('heal')}
 function activateOverOverdrive(p){
  if(p.kind!==1||p.ko||p.stun>0||paused||phase!=='game'||clash||domain&&domain.type===0)return;
@@ -616,7 +649,7 @@ function ultimate(p){if(domain&&domain.type===0)return;if(p.ko||p.stun>0||p.ulti
  else if(p.kind===3){announce('TRIANGULAR GENESIS','GRAND CONSTRUCTION · CRYSTAL STORM',1.5,p.cfg.glow);if(!trianglesSpend(p,180)){p.awakening+=70;return}for(const t of players)if(t!==p&&!t.ko){deal(p,t,56,{source:'super',knock:560});effects.push({kind:'ring',x:t.x,y:t.y-70,r:10,target:110,c:'#a4f6ff',life:.65,max:.65})}p.shieldTime=2}
  else if(p.kind===4){announce('KINETIC LOOP','LIMIT BREAK · VECTOR CANNON',1.5,p.cfg.glow);for(const t of players)if(t!==p&&!t.ko)deal(p,t,70,{source:'super',knock:680});p.vectorBarrier=2.5}
  else if(p.kind===5){if(p.zephyrUsed){p.awakening+=70;popup(p.x,p.y-171,'ZEPHYR ON COOLDOWN',p.cfg.glow,12);return}announce('MAXIMUM: ZEPHYR','PRECISION WIND · 5s CONTACT WINDOW',1.5,p.cfg.glow);p.zephyrWindow=5;p.zephyrUsed=true;p.ultFx=.7}
- else{announce('MAXIMUM: OVERCLOCK','MILLION-FOLD PHOTON STORM',1.7,'#e7f9ff');p.clones=[];for(const t of players)if(t!==p&&!t.ko){deal(p,t,86,{dir:Math.sign(t.x-p.x),knock:700,stun:.7,source:'super'});for(let i=0;i<16;i++)effects.push({kind:'beam',x:rnd(0,W),y:rnd(140,FLOOR),endX:t.x+rnd(-60,60),endY:t.y-rnd(20,110),life:rnd(.25,.8),max:.8,c:'#f5ffff'})}p.burnout=3.3}
+ else{announce('MAXIMUM: OVERCLOCK','MILLION-FOLD PHOTON STORM',1.7,'#e7f9ff');p.clones=[];for(const t of players)if(t!==p&&!t.ko){deal(p,t,66,{dir:Math.sign(t.x-p.x),knock:700,stun:.7,source:'super'});for(let i=0;i<16;i++)effects.push({kind:'beam',x:rnd(0,W),y:rnd(140,FLOOR),endX:t.x+rnd(-60,60),endY:t.y-rnd(20,110),life:rnd(.25,.8),max:.8,c:'#f5ffff'})}p.burnout=5.2}
  sound('domain')}
 // Domains now start with a readable counter window. Winning a clash is based on player inputs, never a coin flip.
 function domainTitle(k){return ['FATED MISFORTUNE','ENDLESS HORIZON','KALEIDOSCOPE OF TOTAL REFLECTION','INFINITE TRIANGULATION','INTERSECTIONAL COMPASS','EYE OF THE SILENT HURRICANE'][k]}
@@ -793,11 +826,11 @@ function updateDomain(dt){if(!domain)return;const d=domain;
  }
  if(d.type===2){
   const pressure=clamp(d.started/11,0,1);d.confusion=pressure;
-  if(d.tick>.53){d.tick=0;
+  if(d.tick>.6){d.tick=0;
    for(const t of players)if(t!==p&&!t.ko){
-    const rays=3+Math.floor(pressure*2);
+    const rays=2+Math.floor(pressure*2);
     for(let i=0;i<rays;i++)effects.push({kind:'beam',x:rnd(0,W),y:rnd(95,FLOOR-170),endX:t.x+rnd(-25,25),endY:t.y-rnd(25,120),life:.36,max:.36,c:i%2?'#c8b8ff':'#eaffff'});
-    deal(p,t,7+pressure*5,{dir:Math.sign(t.x-p.x),knock:34,stun:.10,source:'domain',surehit:true});
+    deal(p,t,5+pressure*4,{dir:Math.sign(t.x-p.x),knock:34,stun:.10,source:'domain',surehit:true});
    }
   }
  }
@@ -805,6 +838,34 @@ function updateDomain(dt){if(!domain)return;const d=domain;
  if(d.type===4&&d.tick>.55){d.tick=0;for(const t of players)if(t!==p&&!t.ko&&t.simpleDomain<=0){deal(p,t,10,{source:'domain',surehit:true,knock:95});t.vx*= -.35;} }
  if(d.type===5){d.confusion=clamp(d.started/11,0,1);if(d.tick>.7){d.tick=0;for(const t of players)if(t!==p&&!t.ko&&t.simpleDomain<=0){t.ce=Math.max(0,t.ce-(5+4*d.confusion));popup(t.x,t.y-159,'ATMOSPHERIC PRESSURE',p.cfg.glow,11)}}}
  if(d.life<=0){domain=null;domainIntro=null;shakes=7;popup(p.x,p.y-145,'DOMAIN RELEASED','#e0f0ff',13)}
+}
+// ---- EMOTES (V8.2): a palette that never takes over movement or combat ----
+const EMOTES=[
+ {glyph:'✧',label:'RESPECT',color:'#ffe6a5'},
+ {glyph:'♠',label:'FORTUNE',color:'#e9c68a'},
+ {glyph:'◇',label:'FLICKER',color:'#c7b4ff'},
+ {glyph:'△',label:'CONSTRUCT',color:'#7fe9fa'},
+ {glyph:'↗',label:'VECTOR',color:'#78f6be'},
+ {glyph:'༄',label:'GALE',color:'#d2a4fa'}
+];
+function fireEmote(p){
+ if(p.emoteCd>0)return;
+ const e=EMOTES[(p.emoteIndex||0)%EMOTES.length];
+ p.emoteOpen=false;p.emoteClock=0;p.emoteTime=2.4;p.emoteGlyph=e.glyph;p.emoteLabel=e.label;p.emoteColor=e.color;p.emoteCd=1.4;
+ emission(p.x,p.y-118,e.color,10,120,.55);splash(p.x,p.y-96,e.color,46);sound('card');
+}
+function updateEmote(p,dt){
+ if(p.emoteCd>0)p.emoteCd=Math.max(0,p.emoteCd-dt);
+ if(p.emoteTime>0)p.emoteTime=Math.max(0,p.emoteTime-dt);
+ if(tap(p,'emote')){
+  if(p.emoteOpen)fireEmote(p);
+  else if(p.emoteCd<=0){p.emoteOpen=true;p.emoteClock=3.4}
+ }
+ if(!p.emoteOpen)return;
+ p.emoteClock-=dt;
+ if(tap(p,'left'))p.emoteIndex=((p.emoteIndex||0)+EMOTES.length-1)%EMOTES.length;
+ if(tap(p,'right'))p.emoteIndex=((p.emoteIndex||0)+1)%EMOTES.length;
+ if(p.emoteClock<=0){p.emoteOpen=false;p.emoteClock=0}
 }
 function update(dt){if(phase!=='game'||paused)return;const real=dt;dt=clamp(dt,0,.042);frame+=dt;cameraKick=Math.max(0,cameraKick-dt*.44);if(clash){updateClash(dt);if(!clash||clash.intro>0){updateParticles(dt);return}}if(domainIntro){domainIntro.remaining=Math.max(0,domainIntro.remaining-dt);if(domainIntro.remaining<=0)domainIntro=null;}if(!clash&&!(domain&&domain.type===0))time=Math.max(0,time-dt);if(annTimer>0)annTimer-=dt;if(freeze>0){freeze-=dt;updateParticles(dt*.35);return}if(domainBurst>0)domainBurst-=dt;shakes*=Math.exp(-9*dt);if(shakes<.2)shakes=0;
  if(!clash)updateDomain(dt);
@@ -825,10 +886,10 @@ function update(dt){if(phase!=='game'||paused)return;const real=dt;dt=clamp(dt,0
  }
  for(const p of players){for(const key of ['invuln','stun','attackAnim','attackCd','dashCd','dashTime','dashTrail','damageGlow','blockGlow','guardStart','diamondArmor','heartSnare','lastSkill','coolDown','chronal','ultFx','pose','kickAnim','lockedMove','selfEdge','selfBattery','selfAnchor','_evaded','simpleCd','rctLock','shieldTime','vectorBarrier','loopCharge','windCharge','zephyrWindow','constructTimer','armTimer','counterWindow','wallBounceCd','comboTimer','comboVisual'])p[key]=Math.max(0,(p[key]||0)-dt);
  if(p.comboTimer===0){p.comboHits=0;p.comboDamage=0;p.comboTarget=-1;}for(const key in p.cardCd)p.cardCd[key]=Math.max(0,p.cardCd[key]-dt);p.luck=clamp(p.luck+dt*(players.length===3?1.9:1.25),0,100);p.awakening=clamp(p.awakening+dt*.75,0,100);
- if(p.simpleDomain>0){p.simpleDomain=Math.max(0,p.simpleDomain-dt);p.ce=Math.max(0,p.ce-dt*1.8);if(p.ce===0)p.simpleDomain=0;}if(p.kind===3){if(p.constructTimer>0)p.triangles=Math.max(0,p.triangles-dt*(20/60));if(p.armTimer<=0)p.extraArms=0;if(p.extraArms>0)p.triangles=Math.max(0,p.triangles-dt*p.extraArms*(50/60));}if(p.ko){p.vx*=.93;continue}if(clash&&!clash.fighters.includes(p.id)){if(tap(p,'domain'))joinClash(p);if(!clash.fighters.includes(p.id)){p.vx=0;p.vy=0;continue}}if(domain&&domain.type===0&&!clash){p.vx=0;p.vy=0;p.guard=false;p.resistance=false;continue}p.ce=clamp(p.ce+dt*(p.cfg.energyRegen+(p.kind===1&&p.momentum>=100?2.5:0)-(p.kind===1?.4:0)),0,100);
+ if(p.simpleDomain>0){p.simpleDomain=Math.max(0,p.simpleDomain-dt);p.ce=Math.max(0,p.ce-dt*1.8);if(p.ce===0)p.simpleDomain=0;}if(p.kind===3){if(p.constructTimer>0)p.triangles=Math.max(0,p.triangles-dt*(20/60));if(p.armTimer<=0)p.extraArms=0;if(p.extraArms>0)p.triangles=Math.max(0,p.triangles-dt*p.extraArms*(50/60));}updateEmote(p,dt);if(p.ko){p.vx*=.93;continue}if(clash&&!clash.fighters.includes(p.id)){if(tap(p,'domain'))joinClash(p);if(!clash.fighters.includes(p.id)){p.vx=0;p.vy=0;continue}}if(domain&&domain.type===0&&!clash){p.vx=0;p.vy=0;p.guard=false;p.resistance=false;continue}p.ce=clamp(p.ce+dt*(p.cfg.energyRegen+(p.kind===1&&p.momentum>=100?2.5:0)-(p.kind===1?.4:0)),0,100);
  if(p.burnout>0)p.burnout=Math.max(0,p.burnout-dt);
  if(p.superTime>0){p.superTime=Math.max(0,p.superTime-dt);p.momentum=200;p.overOverTime=Math.max(0,p.overOverTime-dt);if(p.superTime===0){p.momentum=0;p.burnout=p.overOverUsed?10:8;p.overOverTime=0;p.ultimateLock=true;popup(p.x,p.y-151,'TECHNIQUE BURNOUT','#76b5e6',15)}}
- p.guard=down(p,'guard')&&p.stun<=0&&p.dashTime<=0;p.resistance=false;if(p.guard&&p.guardStart<=0&&tap(p,'guard'))p.guardStart=.15;
+ p.guard=down(p,'guard')&&p.stun<=0&&p.dashTime<=0&&p.attackAnim<=0;p.resistance=false;if(p.guard&&p.guardStart<=0&&tap(p,'guard'))p.guardStart=.15;
  if(p.kind===1&&(!domain||domain.owner!==p.id)&&p.superTime<=0){p.stale+=dt;if(p.stale>2.5&&Math.abs(p.vx)<80)giveMomentum(p,-dt*7)}
  if(p.kind===2){p.clones=p.clones.filter(c=>c.hits>0);if(p.cloneWave>0)p.cloneWave-=dt;else p.clones=[];for(const c of p.clones){c.phase+=dt*1.5;c.x=p.x+Math.cos(c.phase)*85}}
  if(p.kind===0&&p.clubCharge>0)p.clubCharge=Math.min(220,p.clubCharge+dt*9);
@@ -1054,6 +1115,10 @@ function drawCharacter(p){
  limb(22,-116,elbow.x,elbow.y,17,panel);limb(elbow.x,elbow.y,hand.x,hand.y,14,panel);
  circle(hand.x,hand.y,9,k===0?'#171b28':skin);
  if(k===1){line(hand.x-5,hand.y-5,hand.x+5,hand.y+4,'#2aaff5',4);circle(hand.x+2,hand.y+1,3,'#a6ecff')}
+ if(k===3){ // held constructs read as blades, spears, shields and chains
+   if(p.shieldTime>0){ctx.save();ctx.translate(26,-96);ctx.scale(.5,.5);crystalWeapon(2);ctx.restore();glow(26,-96,46,'#a9f6ff',.22)}
+   if(action>0||p.constructTimer>0||cast>0){const ang=p.construct===1?-.08:p.construct===3?-.75:-1.15+action*.55;ctx.save();ctx.translate(hand.x,hand.y);ctx.rotate(ang);ctx.scale(.5,.5);crystalWeapon(p.construct);ctx.restore()}
+ }
  if(k===0){ // Cards visibly flare during casting; silver card case at waist.
    rounded(18,-67,15,25,2,'#bac2ce');line(21,-63,29,-63,'#353e56',2);
    ctx.save();ctx.translate(hand.x+4,hand.y-9);ctx.rotate(-.4-(cast+action)*.6);
@@ -1109,7 +1174,32 @@ function drawCharacter(p){
 }
 function drawDoubles(p){if(p.kind!==2||!p.clones.length)return;const jump=Math.max(1,Math.ceil(p.clones.length/6));for(let i=0;i<p.clones.length;i+=jump){const c=p.clones[i],a=c.phase;ctx.save();ctx.globalAlpha=.20+Math.sin(a+frame*5)*.08;drawCharacter({...p,x:p.x+Math.cos(a)*78,y:p.y-Math.max(0,Math.sin(a))*35,clones:[],damageGlow:0,diamondArmor:0,guard:false});ctx.restore()}}
 
-function drawProjectiles(){for(const s of projectiles){ctx.save();glow(s.x,s.y,s.r*4,s.color,.5);ctx.translate(s.x,s.y);ctx.rotate(Math.atan2(s.vy,s.vx));if(s.kind==='card'||s.kind==='heart'){rounded(-s.r,-s.r*.65,s.r*2,s.r*1.3,3,s.kind==='heart'?'#ffbacb':'#fce3ac');txt(s.kind==='heart'?'♥':s.card?.s||'♠',0,0,s.r*1.1,s.kind==='heart'?'#ad245f':'#4d344b','center',1000)}else if(s.kind==='triangle'){fillPoly([[-26,18],[16,-26],[29,18]],'#83ecf9');line(-20,10,10,-18,'#ffffff',2)}else if(s.kind==='vector'){for(let i=0;i<3;i++){line(-35+i*7,-13+i*10,40+i*3,4+i*6,i===0?'#e7fff6':'#63ffbf',4)}}else if(s.kind==='wind'){ctx.strokeStyle='#e8d8ff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,26,-1.5,.9);ctx.stroke()}else if(s.kind==='lash'){line(-40,0,40,0,'#ecffff',6);line(-95,0,30,0,s.color,15)}else{ctx.beginPath();ctx.ellipse(0,0,s.r*2.2,s.r*.8,0,0,TAU);ctx.fillStyle=s.color;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke()}ctx.restore()}}
+// Hido's constructs read as real weapons: crystal blade, spear, shield and chained blade.
+function crystalWeapon(kind=0){
+ const edge='#2f8aa4',base='#7fe9fa',bright='#e6ffff',deep='#2c6d84';
+ if(kind===1){
+  line(-42,0,42,0,deep,7);line(-42,0,42,0,base,4);
+  outlinedPoly([[38,-5],[74,-10],[96,0],[74,10],[38,5]],base,edge,2);
+  outlinedPoly([[72,-3],[92,0],[74,3]],bright,edge,1.2);
+  for(let i=0;i<3;i++)line(-38+i*20,-3,-32+i*20,3,'#cdfbffaa',2);
+  outlinedPoly([[-50,-5],[-42,-3],[-42,3],[-50,5]],base,edge,1.6);
+ }else if(kind===2){
+  outlinedPoly([[0,-34],[29,-20],[33,10],[15,32],[-2,34],[-22,17],[-29,-6]],base,edge,2.4);
+  outlinedPoly([[0,-26],[21,-15],[24,8],[11,24],[-1,26],[-15,12],[-21,-4]],'#bff9ff',edge,1.1);
+  for(let i=0;i<3;i++)line(-17+i*11,-19,-2+i*9,23,'#59c4dc',1.6);
+  circle(0,0,7,bright);
+ }else if(kind===3){
+  for(let i=0;i<5;i++){const x=-38+i*19;ctx.save();ctx.translate(x,0);ctx.rotate(i%2?.55:-.55);line(-12,0,12,0,base,4);ctx.strokeStyle=edge;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(0,0,13,6,0,0,TAU);ctx.stroke();ctx.restore()}
+  outlinedPoly([[50,-9],[72,0],[50,9],[55,0]],bright,edge,1.5);
+ }else{
+  outlinedPoly([[-30,-3],[36,-6],[74,-3],[86,0],[74,3],[36,6],[-30,3]],base,edge,1.8);
+  outlinedPoly([[-16,-1],[62,-1],[74,0],[62,1],[-16,1]],bright,edge,.8);
+  line(34,-14,34,14,'#9adfee',4);
+  rounded(-44,-4,15,8,2,'#2f6577');
+  line(-46,-7,-46,7,bright,3);
+ }
+}
+function drawProjectiles(){for(const s of projectiles){ctx.save();glow(s.x,s.y,s.r*4,s.color,.5);ctx.translate(s.x,s.y);ctx.rotate(Math.atan2(s.vy,s.vx));if(s.kind==='card'||s.kind==='heart'){rounded(-s.r,-s.r*.65,s.r*2,s.r*1.3,3,s.kind==='heart'?'#ffbacb':'#fce3ac');txt(s.kind==='heart'?'♥':s.card?.s||'♠',0,0,s.r*1.1,s.kind==='heart'?'#ad245f':'#4d344b','center',1000)}else if(s.kind==='triangle'){const sc=s.weapon===1?.82:s.weapon===3?.76:.7;ctx.save();ctx.scale(sc,sc);crystalWeapon(s.weapon??0);ctx.restore()}else if(s.kind==='vector'){for(let i=0;i<3;i++){line(-35+i*7,-13+i*10,40+i*3,4+i*6,i===0?'#e7fff6':'#63ffbf',4)}}else if(s.kind==='wind'){ctx.strokeStyle='#e8d8ff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,26,-1.5,.9);ctx.stroke()}else if(s.kind==='lash'){line(-40,0,40,0,'#ecffff',6);line(-95,0,30,0,s.color,15)}else{ctx.beginPath();ctx.ellipse(0,0,s.r*2.2,s.r*.8,0,0,TAU);ctx.fillStyle=s.color;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke()}ctx.restore()}}
 function drawEffects(){for(const e of effects){const a=clamp(e.life/e.max,0,1);ctx.save();ctx.globalAlpha=a;if(e.kind==='ring'){ctx.strokeStyle=e.c;ctx.lineWidth=5*a;ctx.beginPath();ctx.arc(e.x,e.y,lerp(e.target,e.r,a),0,TAU);ctx.stroke()}else if(e.kind==='slash'){ctx.translate(e.x,e.y);ctx.scale(e.dir,1);ctx.strokeStyle=e.c;ctx.lineWidth=11*a;ctx.beginPath();ctx.arc(0,0,50*e.scale,-1.15,1.15);ctx.stroke();ctx.strokeStyle='#fff';ctx.lineWidth=3*a;ctx.stroke()}else if(e.kind==='beam'){line(e.x,e.y,e.endX,e.endY,e.c,9*a);line(e.x,e.y,e.endX,e.endY,'#ffffff',2*a)}else if(e.kind==='warp'){glow(e.x,e.y,90,e.c,.4*a);ctx.strokeStyle=e.c;ctx.lineWidth=3;ctx.strokeRect(e.x-42*a,e.y-58*a,84*a,115*a)}ctx.restore()}}
 function drawParticles(){for(const p of particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);if(p.kind==='line')line(p.x,p.y,p.x-p.vx*.06,p.y-p.vy*.06,p.c,p.r*.52);else circle(p.x,p.y,p.r,p.c)}ctx.globalAlpha=1;for(const p of popups){ctx.globalAlpha=clamp(p.life/.5,0,1);ctx.shadowColor=p.c;ctx.shadowBlur=12;txt(p.txt,p.x,p.y,p.size,p.c,'center',950);ctx.shadowBlur=0}ctx.globalAlpha=1}
 function drawBars(){// HUD strips with health, CE, Awakening & personal meters
@@ -1137,7 +1227,31 @@ function drawBars(){// HUD strips with health, CE, Awakening & personal meters
 function drawCardWheel(p){if(p.ko)return;let w=cardWheelCenter(p),cx=w.x,cy=w.y;ctx.save();glow(cx,cy,122,'#eac88f',.19);circle(cx,cy,92,'#0d1422db');ctx.strokeStyle='#ba965c99';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,92,0,TAU);ctx.stroke();const R=73;for(let i=0;i<8;i++){let idx=(p.cardIndex+i-2+cards.length*10)%cards.length;let c=cards[idx],ang=-Math.PI/2+i*TAU/8,x=cx+Math.cos(ang)*R,y=cy+Math.sin(ang)*R;let chosen=i===2;ctx.save();ctx.translate(x,y);ctx.rotate((ang+Math.PI/2)*.15);rounded(-19,-25,38,50,4,chosen?'#ffebbf':'#29334b');ctx.strokeStyle=chosen?'#fdecbd':'#aaadc055';ctx.lineWidth=chosen?3:1;ctx.strokeRect(-19,-25,38,50);txt(c.s,0,-7,18,c.type==='heart'?'#e86d8e':c.type==='diamond'?'#99d8ff':c.type==='joker'?'#eac689':'#ddc99b','center',1000);txt(c.r,0,14,12,chosen?'#483023':'#e6eaf5','center',900);ctx.restore()}
  // indicator to selected card at three o'clock
  ctx.strokeStyle='#fff6cb';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy,105,-.33,.33);ctx.stroke();circle(cx,cy,33,'#121624');txt(cards[p.cardIndex].s,cx,cy-10,22,'#ddc18d','center',1000);txt('WHEEL',cx,cy+12,8,'#d2bc88','center',900);const c=cards[p.cardIndex];let title=`${c.s}${c.r} ${c.name}`;rounded(cx-100,cy-117,200,22,4,'#161923df');txt(title,cx,cy-107,10,'#f8e7c1','center',950);ctx.restore()}
-function drawSmallInfo(){if(phase!=='game'&&phase!=='end')return;const n=players.filter(p=>p.kind===0&&!p.ko);if(!domain||domain.type!==0)n.forEach(drawCardWheel)}
+function drawEmoteBubble(p){
+ if(p.emoteTime<=0||!p.emoteGlyph)return;
+ const fade=clamp((2.4-p.emoteTime)/.16,0,1)*clamp(p.emoteTime/.45,0,1);
+ if(fade<=0)return;
+ const rise=(1-clamp(p.emoteTime/2.4,0,1))*14,y=p.y-192-rise;
+ ctx.save();ctx.globalAlpha=fade;
+ glow(p.x,y,58,p.emoteColor,.3);
+ rounded(p.x-54,y-23,108,42,10,'#0a1424e6');
+ ctx.strokeStyle=colorAlpha(p.emoteColor,.72);ctx.lineWidth=1.5;ctx.strokeRect(p.x-53.5,y-22.5,107,41);
+ txt(p.emoteGlyph,p.x-33,y-2,19,p.emoteColor,'center',1000);
+ txt(p.emoteLabel,p.x+7,y-2,11,'#eaf8ff','center',950);
+ fillPoly([[p.x-7,y+19],[p.x+7,y+19],[p.x,y+28]],'#0a1424e6');
+ ctx.restore();
+}
+function drawEmotePalette(p){
+ if(!p.emoteOpen)return;
+ const boxW=EMOTES.length*38+14,cx=clamp(p.x,boxW/2+12,W-boxW/2-12),y=p.y-236;
+ ctx.save();glow(cx,y+22,boxW*.5,'#6fd4ff',.12);
+ rounded(cx-boxW/2,y,boxW,44,9,'#0a1424e8');
+ ctx.strokeStyle='#3f7198';ctx.lineWidth=1.5;ctx.strokeRect(cx-boxW/2+.5,y+.5,boxW-1,43);
+ EMOTES.forEach((e,i)=>{const ex=cx-boxW/2+26+i*38;if(i===p.emoteIndex){rounded(ex-16,y+5,32,34,7,'#1d3f5c');ctx.strokeStyle=colorAlpha(e.color,.7);ctx.lineWidth=1.5;ctx.strokeRect(ex-15.5,y+5.5,31,33)}txt(e.glyph,ex,y+22,16,i===p.emoteIndex?e.color:'#9fb9cf','center',1000)});
+ txt('◀ ▶ SELECT · '+prettyKeyName(maps[p.id]?.emote||'KeyT')+' SEND',cx,y-9,9,'#8fc8e4','center',900);
+ ctx.restore();
+}
+function drawSmallInfo(){if(phase!=='game'&&phase!=='end')return;const n=players.filter(p=>p.kind===0&&!p.ko);if(!domain||domain.type!==0)n.forEach(drawCardWheel);players.forEach(p=>{if(!p.ko)drawEmoteBubble(p)});players.forEach(p=>{if(!p.ko)drawEmotePalette(p)})}
 function drawDomainFrame(){if(!domain)return;const d=domain,p=players[d.owner],c=p.cfg.glow;
  ctx.strokeStyle=colorAlpha(c,.58);ctx.lineWidth=9;ctx.strokeRect(5,5,W-10,H-10);
  // A compact label replaces the paragraph-sized Domain status overlay.
@@ -1255,14 +1369,116 @@ function render(){ctx.save();ctx.clearRect(0,0,W,H);if(phase==='menu'){drawArena
 // inputs and display host snapshots. The server does not change the fighting rules.
 const netUI=el('netOverlay');
 const netKeys=new Map(Object.entries(maps[0]).map(([action,k])=>[k,action]));
+// ---- KEYBINDS + CONTROLLER (V8.2) ----
+const KEY_ACTIONS=[['left','MOVE LEFT'],['right','MOVE RIGHT'],['up','JUMP / UP'],['down','CROUCH / DOWN'],['attack','STRIKE'],['skill','TECHNIQUE'],['guard','GUARD'],['cycle','CYCLE / CARD'],['super','MAXIMUM'],['domain','DOMAIN'],['rct','RCT / CTR'],['dash','DASH'],['emote','EMOTE']];
+const DEFAULT_KEYBINDS=Object.freeze({...maps[0]});
+const KEYBIND_STORE='zero-keybinds-v1';
+let rebinding=null,netRoomMode=0;
+function loadKeybinds(){const out={...DEFAULT_KEYBINDS};try{const raw=JSON.parse(localStorage.getItem(KEYBIND_STORE)||'null');if(raw&&typeof raw==='object')for(const [action,code] of Object.entries(raw))if(typeof code==='string'&&action in out)out[action]=code}catch{}return out}
+let keybinds=loadKeybinds();
+function saveKeybinds(){try{localStorage.setItem(KEYBIND_STORE,JSON.stringify(keybinds))}catch{}}
+function prettyKeyName(code){
+ const names={ShiftLeft:'L SHIFT',ShiftRight:'R SHIFT',ControlLeft:'L CTRL',ControlRight:'R CTRL',AltLeft:'L ALT',AltRight:'R ALT',Space:'SPACE',Semicolon:';',Quote:"'",Comma:',',Period:'.',Slash:'/',Backslash:'\\',BracketLeft:'[',BracketRight:']',Backquote:'`',Minus:'-',Equal:'=',NumpadAdd:'NUM +',NumpadSubtract:'NUM -',NumpadMultiply:'NUM *',NumpadDivide:'NUM /',ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→'};
+ if(names[code])return names[code];
+ if(/^Key[A-Z]$/.test(code))return code.slice(3);
+ if(/^Digit\d$/.test(code))return code.slice(5);
+ if(/^Numpad/.test(code))return 'NUM '+code.slice(6);
+ return String(code||'—').replace('Key','').replace('Digit','').toUpperCase();
+}
+function rebuildNetKeys(){netKeys.clear();for(const [action,code] of Object.entries(maps[0]))netKeys.set(code,action)}
+function applyKeybinds(){
+ for(const [action,code] of Object.entries(keybinds))if(action in maps[0])maps[0][action]=code;
+ rebuildKeysToCapture();rebuildNetKeys();
+ for(const p of players)if(p.id===0)p.map=maps[0];
+}
+function renderKeyPanel(){
+ const box=el('keyRows');if(!box)return;
+ box.innerHTML='';
+ for(const [action,label] of KEY_ACTIONS){
+  const row=document.createElement('div');row.className='key-row';
+  const name=document.createElement('span');name.textContent=label;
+  const btn=document.createElement('button');btn.type='button';btn.className='key-cap'+(rebinding?.action===action?' listening':'');
+  btn.textContent=rebinding?.action===action?'PRESS A KEY…':prettyKeyName(maps[0][action]);
+  btn.addEventListener('click',()=>{rebinding={action};renderKeyPanel()});
+  row.append(name,btn);box.append(row);
+ }
+}
+function captureKeybind(e){
+ if(!rebinding)return false;
+ if(e.code==='Escape'){rebinding=null;renderKeyPanel();return true}
+ const action=rebinding.action,prev=maps[0][action],code=e.code;
+ const conflict=Object.keys(maps[0]).find(a=>a!==action&&maps[0][a]===code);
+ maps[0][action]=code;
+ if(conflict)maps[0][conflict]=prev;
+ keybinds={...maps[0]};saveKeybinds();applyKeybinds();
+ rebinding=null;renderKeyPanel();sound('card');
+ return true;
+}
+function openKeyPanel(open){el('keyPanel').classList.toggle('hidden',!open);el('keySettings').setAttribute('aria-expanded',String(open));if(open){openAudioPanel(false);renderKeyPanel();updatePadPanel()}}
+function setNetRoomSize(size){
+ const value=size===3?3:2;netRoomMode=value;
+ document.querySelectorAll('#netRoomSize [data-size]').forEach(btn=>{const active=Number(btn.dataset.size)===value;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});
+}
+el('keySettings').addEventListener('click',()=>openKeyPanel(el('keyPanel').classList.contains('hidden')));
+el('keyClose').addEventListener('click',()=>{rebinding=null;renderKeyPanel();openKeyPanel(false)});
+el('keyReset').addEventListener('click',()=>{keybinds={...DEFAULT_KEYBINDS};saveKeybinds();applyKeybinds();rebinding=null;renderKeyPanel();sound('card')});
+document.querySelectorAll('#netRoomSize [data-size]').forEach(btn=>btn.addEventListener('click',()=>setNetRoomSize(Number(btn.dataset.size))));
+applyKeybinds();
+// Standard-mapping gamepads: PS4 DualShock / DualSense, Xbox, Switch Pro.
+const PAD_ACTIONS={attack:[2],skill:[3],guard:[1],up:[0,12],down:[13],left:[14],right:[15],dash:[4],cycle:[5],rct:[6],domain:[7],super:[8,11],emote:[9]};
+const PAD_ORDER=Object.keys(PAD_ACTIONS);
+let padConnected=false,padLabel='',padPrevHeld=new Set();
+function padBrand(id){
+ const name=String(id||'').toLowerCase();
+ if(/dualsense|dualshock|playstation|sony|054c/.test(name))return 'PLAYSTATION';
+ if(/xbox|xinput|microsoft|045e/.test(name))return 'XBOX';
+ if(/switch|nintendo|joy-con|pro controller|057e/.test(name))return 'NINTENDO SWITCH';
+ return 'STANDARD';
+}
+function updatePadPanel(){
+ const box=el('padStatus');if(!box)return;
+ box.innerHTML=padConnected?'<b>🎮 '+padLabel+'</b><span>CONNECTED · PLAYER 1</span>':'🎮 NO CONTROLLER DETECTED';
+ const hint=el('padHint');if(!hint)return;
+ if(!padConnected){hint.textContent='Connect a PlayStation, Xbox or Switch controller and press any button. Left stick or D-pad moves, ✕/A jumps, □/X strikes, △/Y uses your technique, ○/B guards, L1 dashes, R1 cycles, L2 heals, R2 opens your Domain, R3 fires Maximum, Options sends an emote. Keyboard and controller work at the same time.';return}
+ hint.textContent=padLabel==='PLAYSTATION'?'PLAYSTATION LAYOUT — ✕ jump · □ strike · △ technique · ○ guard · L1 dash · R1 cycle · L2 RCT · R2 Domain · R3 Maximum · Options emote. Keyboard and controller work at the same time.':padLabel==='NINTENDO SWITCH'?'SWITCH LAYOUT — B jump · Y strike · X technique · A guard · L dash · R cycle · ZL RCT · ZR Domain · R3 Maximum · + emote. Keyboard and controller work at the same time.':'XBOX LAYOUT — A jump · X strike · Y technique · B guard · LB dash · RB cycle · LT RCT · RT Domain · R3 Maximum · Menu emote. Keyboard and controller work at the same time.';
+}
+function padActions(pad){
+ const heldNow=new Set(),buttons=pad.buttons||[];
+ for(const action of PAD_ORDER)if(PAD_ACTIONS[action].some(i=>!!(buttons[i]&&(buttons[i].pressed||buttons[i].value>.5))))heldNow.add(action);
+ const ax=pad.axes?.[0]||0,ay=pad.axes?.[1]||0;
+ if(ax<-.4)heldNow.add('left');if(ax>.4)heldNow.add('right');
+ if(ay<-.62)heldNow.add('up');if(ay>.62)heldNow.add('down');
+ return heldNow;
+}
+function pollGamepads(){
+ if(!navigator.getGamepads)return;
+ let pad=null;
+ for(const g of navigator.getGamepads()||[])if(g&&g.connected){pad=g;break}
+ if(!pad){
+  if(padConnected){padConnected=false;padLabel='';padPrevHeld.clear();padHeld.clear();padPressed.clear();if(net.active&&!net.host&&net.status==='playing'&&phase==='game')for(const action of PAD_ORDER)netDo('input',{action,down:false}).catch(()=>{});if(phase==='game')announce('CONTROLLER DISCONNECTED','KEYBOARD ACTIVE',1.6,'#ffcf9c');updatePadPanel()}
+  return;
+ }
+ const heldNow=padActions(pad);
+ if(!padConnected){padConnected=true;padLabel=padBrand(pad.id);if(phase==='game'&&!paused)announce('CONTROLLER CONNECTED',padLabel+' · PLAYER 1',1.7,'#b8f4ff');updatePadPanel();sound('card')}
+ if(net.active&&!net.host){
+  if(net.status==='playing'&&phase==='game'){
+   for(const action of heldNow)if(!padPrevHeld.has(action))netDo('input',{action,down:true}).catch(()=>{});
+   for(const action of padPrevHeld)if(!heldNow.has(action))netDo('input',{action,down:false}).catch(()=>{});
+  }
+  padPrevHeld=heldNow;return;
+ }
+ for(const action of heldNow)if(!padPrevHeld.has(action))padPressed.add(action);
+ padHeld.clear();for(const action of heldNow)padHeld.add(action);
+ padPrevHeld=heldNow;
+}
 function netShowMessage(message){el('netError').textContent=message||'';}
-function netOpen(){netUI.classList.remove('hidden');netShowMessage('');if(!net.active)el('netEntrance').classList.remove('hidden');}
+function netOpen(){netUI.classList.remove('hidden');netShowMessage('');if(!net.active){el('netEntrance').classList.remove('hidden');setNetRoomSize(netRoomMode||(mode===3?3:2))}}
 function netClose(){if(net.active&&net.status==='playing'){netShowMessage('Your online fight is running. Use CLOSE only if you want to return to watching the arena.');netUI.classList.add('hidden');return}netUI.classList.add('hidden')}
 el('openOnlineButton').addEventListener('click',netOpen);
 el('netClose').addEventListener('click',netClose);
 async function netPost(route,body){const response=await fetch('/api/'+route,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const out=await response.json();if(!response.ok)throw new Error(out.error||'Server request failed');return out;}
 async function netDo(route,extra={}){if(!net.active)return;return netPost(route,{room:net.room,token:net.token,...extra});}
-async function netCreate(){try{netShowMessage('');const data=await netPost('create',{mode,name:el('netName').value,character:selected[0],arenaIndex});netAccept(data)}catch(error){netShowMessage(error.message)}}
+async function netCreate(){try{netShowMessage('');const roomMode=netRoomMode||mode;const data=await netPost('create',{mode:roomMode,name:el('netName').value,character:selected[0],arenaIndex});netAccept(data)}catch(error){netShowMessage(error.message)}}
 async function netJoin(){try{netShowMessage('');const room=el('netJoinCode').value.toUpperCase().trim();if(room.length!==6)throw new Error('Enter a six-character room code.');const data=await netPost('join',{room,name:el('netName').value,character:selected[0]});netAccept(data)}catch(error){netShowMessage(error.message)}}
 el('netCreate').addEventListener('click',netCreate);el('netJoin').addEventListener('click',netJoin);
 el('netJoinCode').addEventListener('keydown',e=>{if(e.key==='Enter')netJoin()});
@@ -1290,7 +1506,7 @@ function netAccept(info){
 }
 function netLobbyState(view){
  if(!net.active||net.room!==view.code)return;
- net.members=view.players;net.status=view.status;if(Number.isInteger(view.arenaIndex))arenaIndex=view.arenaIndex;document.querySelectorAll('[data-netarena]').forEach(btn=>{btn.classList.toggle('active',+btn.dataset.netarena===arenaIndex);btn.disabled=!net.host||view.status!=='lobby';});
+ net.members=view.players;net.status=view.status;net.mode=Number(view.mode)||view.players.length||2;if(Number.isInteger(view.arenaIndex))arenaIndex=view.arenaIndex;document.querySelectorAll('[data-netarena]').forEach(btn=>{btn.classList.toggle('active',+btn.dataset.netarena===arenaIndex);btn.disabled=!net.host||view.status!=='lobby';});
  el('netOffline').classList.toggle('hidden',!(view.status==='playing'&&!view.players[0]?.online));
  const box=el('netPlayers');box.innerHTML='';
  view.players.forEach((p,i)=>{
@@ -1334,7 +1550,7 @@ el('netStart').addEventListener('click',async()=>{try{await netDo('start')}catch
 function netOnStarted(view){
  if(!net.active)return;
  net.members=view.players;net.status='playing';
- mode=view.mode;selected=view.players.map(p=>p.character);if(Number.isInteger(view.arenaIndex))arenaIndex=view.arenaIndex;
+ mode=view.mode;net.mode=mode;selected=view.players.filter(Boolean).map(p=>p.character);while(selected.length<mode)selected.push(0);if(Number.isInteger(view.arenaIndex))arenaIndex=view.arenaIndex;
  if(phase==='game')return;
  netUI.classList.add('hidden');el('netOffline').classList.add('hidden');start();
  el('statusHint').textContent='🌐 ROOM '+net.room+' · YOU ARE P'+(net.slot+1)+' · WASD + F/G/H · '+(net.host?'HOST':'CONNECTED');
@@ -1349,7 +1565,7 @@ function netOnLobbyReturn(view){
  netUI.classList.remove('hidden');netLobbyState(view);netShowMessage('Choose your character and ready up for the next match.');
 }
 function netReceiveInput(msg){
- if(!net.host||!net.active||net.status!=='playing'||msg.slot<1||msg.slot>=mode)return;
+ if(!net.host||!net.active||net.status!=='playing'||msg.slot<1||msg.slot>=(net.mode||mode))return;
  const p=players[msg.slot];if(!p||p.ko)return;
  let h=netHeld.get(msg.slot),pr=netPressed.get(msg.slot);
  if(!h){h=new Set();netHeld.set(msg.slot,h)}if(!pr){pr=new Set();netPressed.set(msg.slot,pr)}
@@ -1373,7 +1589,8 @@ function netSendSnapshot(){
 function netApplySnapshot(s){
  if(!net.active||net.host||s.seq<=net.lastReceived)return;
  net.lastReceived=s.seq;
- if(phase==='menu'&&net.status==='playing')netOnStarted({mode:s.mode,players:net.members});
+ if(s.mode)net.mode=s.mode;
+ if(phase==='menu'&&net.status==='playing')netOnStarted({mode:s.mode,players:net.members.length?net.members:s.players});
  if(phase!=='game'&&phase!=='end')return;
  mode=s.mode;if(Number.isInteger(s.arenaIndex))arenaIndex=s.arenaIndex;time=s.time;round=s.round;lastWinner=s.lastWinner;
  domain=s.domain;clash=s.clash;domainIntro=s.domainIntro;domainBurst=s.domainBurst;
@@ -1394,11 +1611,13 @@ function netApplySnapshot(s){
 async function netToLobby(){try{await netDo('lobby')}catch(e){netShowMessage(e.message)}}
 // Each remote Chromebook controls its own fighter with the P1 keyboard layout.
 window.addEventListener('keydown',e=>{
+ if(isTextEntry(e.target))return;
  if(!net.active||net.host||net.status!=='playing'||e.repeat||phase!=='game')return;
  const action=netKeys.get(e.code);if(!action)return;e.preventDefault();
  netDo('input',{action,down:true}).catch(()=>{});
 });
 window.addEventListener('keyup',e=>{
+ if(isTextEntry(e.target))return;
  if(!net.active||net.host||net.status!=='playing')return;
  const action=netKeys.get(e.code);if(action){e.preventDefault();netDo('input',{action,down:false}).catch(()=>{})}
 });
@@ -1446,9 +1665,10 @@ document.querySelectorAll('#touchControls [data-action]').forEach(btn=>{
 // ---- END ONLINE MULTIPLAYER ----
 
 let last=performance.now();function loop(now){let dt=(now-last)/1000;last=now;
+ pollGamepads();
  if(!net.active||net.host){update(dt);if(net.active&&net.status==='playing'&&now-net.lastSent>65){net.lastSent=now;netSendSnapshot();}}
  else if(phase==='game'||phase==='end'){frame+=Math.min(dt,.04);for(const p of players){p.renderX=lerp(p.renderX??p.x,p.x,clamp(dt*15,0,1));p.renderY=lerp(p.renderY??p.y,p.y,clamp(dt*15,0,1));}}
-  updateSoundtrack(Math.min(.1,Math.max(0,dt)));render();pressed.clear();touchPressed.clear();for(const set of netPressed.values())set.clear();requestAnimationFrame(loop)
+  updateSoundtrack(Math.min(.1,Math.max(0,dt)));render();pressed.clear();touchPressed.clear();padPressed.clear();for(const set of netPressed.values())set.clear();requestAnimationFrame(loop)
 }requestAnimationFrame(loop);
 })();
 
