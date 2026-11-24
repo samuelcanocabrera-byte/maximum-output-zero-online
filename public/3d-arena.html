@@ -1337,7 +1337,7 @@ function makePlayer(i,kind){
     cardIdx:0,cardT:0,club:0,jokers:2,cardCd:{},clones:0,cloneT:0,tri:8000,siphons:10,sealed:0,queuedSeal:0,slowLock:0,queuedSlow:0,zephyrT:0,
     overdriveT:0,ultPose:0,castType:'',castT:0,mirrors:[],mirrorT:0,snapshot:null,
     resistT:0,extraArmT:0,vectorBarrierT:0,stormT:0,stormTick:0,sharpenT:0,anchorT:0,windGuardT:0,ceRegenBlock:0,tetherT:0,tetherFrom:-1,
-    ghosts:[],emote:'',emoteT:0,healLock:0,slow:1,
+    ghosts:[],emote:'',emoteT:0,healLock:0,slow:1,domainCastAt:-1,domainUsed:false,
     comboT:0,comboHits:0,dmgDone:0
   };
 }
@@ -2029,6 +2029,12 @@ function wagerStakes3D(){
 }
 function expandDomain(p){
   if(p.ko||p.stun>0) return;
+  // One Domain per fighter per match: once a Domain has been expanded it is
+  // spent, so nobody can open a second one or re-run the activation.
+  if(p.domainUsed){
+    popupAt(p.x,p.y+172,p.z,'DOMAIN ALREADY EXPANDED','#f4c1df',11);
+    return;
+  }
   // A decided clash spends the awakening it was fought with. The winning
   // Domain keeps playing, but neither fighter can open a fresh one on top.
   if((p.domainLock||0)>0){
@@ -2050,7 +2056,7 @@ function expandDomain(p){
   }
   sfx('domain');
   const life=domainLife3D(p.kind);
-  p.aw=0; p.ce-=35; p.domainTime=life;
+  p.aw=0; p.ce-=35; p.domainTime=life; p.domainCastAt=time; p.domainUsed=true;
   domain={owner:p,type:p.kind,time:life,total:life,intro:2.2,window:2.7,tick:0,started:0,
     wager:{step:0,stakeIdx:0,phase:'choose',timer:0,spin:0,win:null,stake:null,results:[]},stakes:wagerStakes3D()};
   shake=Math.max(shake,16); flash=0.55; camKick=1;
@@ -2065,7 +2071,7 @@ function joinClash(p){
   }
   if(clash&&clash.ids.includes(p.i)) return;
   if(clash&&clash.time<2.4) return;
-  p.aw-=35; p.ce-=28;
+  p.aw-=35; p.ce-=28; p.domainCastAt=time; p.domainUsed=true;
   if(!clash){
     clash={ids:[domain.owner.i,p.i],score:{},time:8.5,total:8.5,intro:1.4};
     clash.score[domain.owner.i]=0; clash.score[p.i]=0;
@@ -2075,7 +2081,53 @@ function joinClash(p){
   domain.window=0; domain.intro=0;
   shake=Math.max(shake,14); flash=0.5;
   announce('DOMAIN CLASH',ROSTER[pick[p.i]].name+' CHALLENGES THE BARRIER','#ffd6f2',2.2);
+  maybeThreeWayClash();
 }
+
+/* ---------- SECRET: THREE-WAY DOMAIN CLASH (SENDAI) ----------
+   When every living fighter opens a Domain inside the same 1.6-second beat,
+   the three worlds are shown colliding in one shared cutscene. This is
+   presentation only: the clash scores, clash.time and endClash() still decide
+   the outcome, and a two-fighter clash can never enter this path. */
+const threeWay={window:1.6,manga:2.0,dur:6.9};
+function maybeThreeWayClash(){
+  if(!clash||clash.cinema||clash.ids.length<3||players.length<3) return;
+  if(!domain||!domain.owner||domain.owner.ko) return;
+  const group=clash.ids.map(i=>players[i]).filter(Boolean);
+  if(group.length<3||group.some(p=>p.ko)) return;
+  const stamps=group.map(p=>p.domainCastAt);
+  if(stamps.some(v=>!(v>=0))) return;
+  if(Math.max(...stamps)-Math.min(...stamps)>threeWay.window) return;
+  clash.cinema={t:0,dur:threeWay.dur,ids:clash.ids.slice(),who:group.map(p=>p.i)};
+  clash.intro=Math.min(clash.intro,0.7);
+  shake=Math.max(shake,24); flash=0.7; camKick=1;
+  for(const p of group){
+    ringBurst(p.x,8,p.z,p.cfg.domain.accent,2.4);
+    sparks(p.x,p.y+110,p.z,p.cfg.domain.accent,16,300);
+  }
+  // No banner: the cutscene itself carries the moment. The rest of the game
+  // keeps its normal announcer for every other beat.
+  ann.t=0;
+  sfx('domain');
+}
+function cinemaOn(){
+  return !!(clash&&clash.cinema&&clash.cinema.t<clash.cinema.dur);
+}
+// The opening beat is a manga triptych: three vertical close-ups that push in
+// on each caster's face before the domains hit the arena.
+function cinemaManga(){
+  return !!(clash&&clash.cinema&&clash.cinema.t<threeWay.manga);
+}
+function cinemaCore(){
+  if(!clash||!clash.cinema) return null;
+  const group=clash.cinema.ids.map(i=>players[i]).filter(Boolean);
+  if(group.length<3) return null;
+  let x=0,z=0;
+  for(const p of group){x+=p.x;z+=p.z}
+  // the collision hangs above the casters so bodies never hide the focal point
+  return {group,x:x/group.length,z:z/group.length,y:275};
+}
+
 function endClash(){
   if(!clash) return;
   let best=-1,bs=-1;
@@ -2228,6 +2280,38 @@ function update(dt){
   comboT=Math.max(0,comboT-dt);
   if(comboT<=0) for(const p of players) p.comboHits=0;
   if(ann.t>0) ann.t-=dt;
+
+  // Three-way cutscene: hold the whole simulation while the domains collide.
+  // No timer, cooldown, score or HP changes during the beat, so the clash
+  // resumes with the exact state it entered with and nothing can get stuck.
+  if(cinemaOn()){
+    const c=clash.cinema;
+    c.t+=dt;
+    if(!c.mangaDone&&c.t>=threeWay.manga){ c.mangaDone=1; flash=0.9; shake=Math.max(shake,26); sfx('domain') }
+    if(!c.flashed&&c.t>=threeWay.manga+1.3){ c.flashed=1; flash=0.9; shake=Math.max(shake,24); sfx('domain') }
+    shake=Math.max(shake,3.2+Math.abs(Math.sin(c.t*7.5))*7.5);
+    const core=cinemaCore();
+    if(core){
+      c.fx=(c.fx||0)-dt;
+      if(c.fx<=0){
+        c.fx=0.055;
+        const g=core.group;
+        for(let k=0;k<3;k++){
+          const p=g[k%g.length], a=Math.random()*TAU;
+          motes.push({x:core.x+Math.cos(a)*520,y:20+Math.random()*260,z:core.z+Math.sin(a)*520,
+            vx:-Math.cos(a)*(70+Math.random()*110),vy:40+Math.random()*90,vz:-Math.sin(a)*(70+Math.random()*110),
+            life:0.5+Math.random()*0.5,max:1,color:p.cfg.domain.accent,r:1.6+Math.random()*2.4});
+        }
+      }
+    }
+    for(let i=bursts.length-1;i>=0;i--){ bursts[i].life-=dt; if(bursts[i].life<=0) bursts.splice(i,1) }
+    for(let i=popups.length-1;i>=0;i--){ const q=popups[i]; q.life-=dt; q.y+=20*dt; if(q.life<=0) popups.splice(i,1) }
+    for(let i=motes.length-1;i>=0;i--){ const m=motes[i]; m.x+=m.vx*dt; m.y+=m.vy*dt; m.z+=m.vz*dt;
+      m.vy-=340*dt; m.vx*=Math.exp(-1.1*dt); m.vz*=Math.exp(-1.1*dt); m.life-=dt; if(m.life<=0) motes.splice(i,1) }
+    pressed.clear();
+    for(const s of net.pressed) s.clear();
+    return;
+  }
 
   if(domain){
     domain.time-=dt;
@@ -2437,7 +2521,7 @@ function update(dt){
 /* ============================================================
    RENDER — geometry pass, painter's algorithm
    ============================================================ */
-let CAM=null, VP=null, layoutCount=0;
+let CAM=null, VP=null, layoutCount=0, mangaView=false;
 
 function paintFaces(vp){
   const fog=parseRGB(FOG_COL);
@@ -2812,8 +2896,11 @@ function drawClashField(vp){
     ctx.fillStyle=rgba(cs.b.cfg.accent,0.17*f);ctx.fill();
     ctx.restore();
   }
-  // competing domain sigils burn into the floor around each caster
-  for(const [p,d] of [[cs.a,cs.da],[cs.b,cs.db]]){
+  // competing domain sigils burn into the floor around each caster — a third
+  // challenger paints its own sigil instead of being visually ignored
+  for(const id of clash.ids){
+    const p=players[id]; if(!p) continue;
+    const d=p.cfg.domain;
     const pulse=0.5+0.5*Math.sin(time*2.4+p.i);
     worldRing(vp,p.x,p.z,300,d.accent,0.20*f*pulse,3,[14,10]);
     worldRing(vp,p.x,p.z,430,d.accent,0.12*f*(1-pulse*0.4),2,[4,16]);
@@ -2899,6 +2986,362 @@ function drawClashFX(vp){
   }
   ctx.restore();
 }
+
+/* ---------- three-way collision: world-space pass ---------- */
+function drawThreeWayCinema(vp){
+  const c=clash&&clash.cinema;
+  const core=cinemaCore();
+  if(!c||!core||c.t>=c.dur) return;
+  const t=c.t, g=core.group;
+  const mt=t-threeWay.manga;
+  if(mt<=0) return;
+  const p1=clamp(mt/1.25,0,1);
+  const p2=clamp((mt-1.25)/1.35,0,1);
+  const p3=clamp((mt-2.6)/1.5,0,1);
+  const out=clamp((mt-4.0)/0.9,0,1);
+  const m=1-out;
+  const collide=clamp((mt-1.0)/0.7,0,1);
+  const beat=0.5+0.5*Math.sin(mt*7.2);
+  ctx.save();
+  ctx.globalCompositeOperation='lighter';
+
+  // PHASE 1 — the three worlds materialise together, each around its caster.
+  for(const p of g) drawDomainAura(vp,p,clamp(p1*1.15,0,1)*m*0.8);
+
+  // PHASE 1-2 — the three skies bleed into one another over the arena.
+  for(let k=0;k<g.length;k++){
+    const p=g[k];
+    const pr=project(CAM,vp,p.x,p.y+90,p.z);
+    if(!pr) continue;
+    const rad=Math.max(80,540+320*Math.sin(t*0.8+k*2.1)+(1-p1)*380);
+    const grd=ctx.createRadialGradient(pr.x,pr.y,0,pr.x,pr.y,rad);
+    grd.addColorStop(0,rgba(p.cfg.domain.accent,0.24*m*p1));
+    grd.addColorStop(0.55,rgba(p.cfg.domain.accent,0.08*m));
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grd;
+    ctx.beginPath();ctx.arc(pr.x,pr.y,rad,0,TAU);ctx.fill();
+    // a thin vertical flare marks the caster without flooding the frame
+    const top=project(CAM,vp,p.x,p.y+980,p.z);
+    if(top){
+      const pg=ctx.createLinearGradient(pr.x,pr.y,top.x,top.y);
+      pg.addColorStop(0,rgba(p.cfg.domain.accent,0.16*m*p1));
+      pg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.strokeStyle=pg;ctx.lineWidth=5;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(pr.x,pr.y);ctx.lineTo(top.x,top.y);ctx.stroke();
+    }
+  }
+
+  // Equal sigils on the floor: three claims, no favourite.
+  for(const p of g){
+    const d=p.cfg.domain, base=140+260*p1;
+    worldRing(vp,p.x,p.z,base,d.accent,0.75*m*p1,4,[16,12]);
+    worldRing(vp,p.x,p.z,base+190,d.accent,0.32*m*p1,2,[5,18]);
+    worldRing(vp,p.x,p.z,base*0.52,d.accent,0.45*m,2.5);
+  }
+
+  const cr=project(CAM,vp,core.x,core.y,core.z);
+  if(cr&&p2>0.01&&collide>0.01){
+    // PHASE 2 — three equal seams meet exactly at the collision point.
+    const pts=g.map(p=>project(CAM,vp,p.x,p.y+120,p.z));
+    if(pts.every(Boolean)){
+      ctx.strokeStyle=rgba('#ffffff',0.28*m*p2);
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      for(let k=0;k<=pts.length;k++){
+        const q=pts[k%pts.length];
+        k?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);
+      }
+      ctx.stroke();
+    }
+    for(const p of g){
+      const pr=project(CAM,vp,p.x,p.y+120,p.z);
+      if(!pr) continue;
+      const col=p.cfg.domain.accent;
+      // each seam bows outward on its own arc, so three casters standing in a
+      // line still read as three separate collisions, not one flat beam
+      const mx=(pr.x+cr.x)/2, my=(pr.y+cr.y)/2;
+      const bx=cr.x-pr.x, by=cr.y-pr.y, bl=Math.hypot(bx,by)||1;
+      const bow=(110+p.i*34)*(0.6+0.4*p2)*(p.i%2?1:-1);
+      const cxp=mx+(-by/bl)*bow, cyp=my+(bx/bl)*bow*0.55;
+      for(let w=0;w<3;w++){
+        const wob=Math.sin(t*9+w*2.1+p.i)*10*(1-p3*0.35);
+        // every seam is painted in its own domain colour — same weight, same
+        // width — so the three worlds stay equally legible at the collision
+        ctx.strokeStyle=rgba(col,(w===2?0.78:0.42-w*0.08)*m*p2);
+        ctx.lineWidth=w===2?4.5:16-w*4;
+        ctx.beginPath();ctx.moveTo(pr.x,pr.y);
+        ctx.quadraticCurveTo(cxp+wob,cyp-wob*1.8,cr.x,cr.y);
+        ctx.stroke();
+      }
+      ctx.strokeStyle=rgba('#ffffff',0.34*m*p2);
+      ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(pr.x,pr.y);
+      ctx.quadraticCurveTo(cxp,cyp,cr.x,cr.y);ctx.stroke();
+      // sparks peeling off the seam
+      for(let i=0;i<2;i++){
+        const q=(t*1.7+i*0.5+p.i*0.17)%1, u=1-q;
+        const sx=u*u*pr.x+2*u*q*cxp+q*q*cr.x;
+        const sy=u*u*pr.y+2*u*q*cyp+q*q*cr.y;
+        ctx.fillStyle=rgba(col,0.65*m*p2*(1-q));
+        ctx.beginPath();ctx.arc(sx+Math.sin(q*9+p.i)*10,sy+Math.cos(q*7)*8,2.2,0,TAU);ctx.fill();
+      }
+      for(let i=0;i<3;i++){
+        const q=(t*1.5+i*0.34)%1;
+        ctx.fillStyle=rgba(col,0.55*m*p2*(1-q));
+        ctx.beginPath();
+        ctx.arc(lerp(pr.x,cr.x,q),lerp(pr.y,cr.y,q)-Math.sin(q*Math.PI)*44,2.6,0,TAU);
+        ctx.fill();
+      }
+    }
+  }
+
+  // PHASE 2-3 — the collision core with three lobes of equal weight: the
+  // equilibrium is unstable, nobody has pushed anybody out.
+  if(cr&&collide>0.01){
+    const rad=Math.max(26,(46+94*p2+14*beat)*(0.7+0.3*collide));
+    // ground shockwaves rolling out of the intersection
+    for(let i=0;i<3;i++){
+      const q=((t*0.55+i*0.33)%1);
+      worldRing(vp,core.x,core.z,220+q*1500,g[i%g.length].cfg.domain.accent,0.30*m*(1-q)*p2,3);
+    }
+    // soft halo first, then a dense core, so the collision reads as a sphere
+    const halo=ctx.createRadialGradient(cr.x,cr.y,0,cr.x,cr.y,rad*2.4);
+    halo.addColorStop(0,rgba('#ffffff',0.30*m*collide));
+    halo.addColorStop(0.42,rgba(g[0].cfg.domain.accent,0.16*m*collide));
+    halo.addColorStop(0.72,rgba(g[1%g.length].cfg.domain.accent,0.10*m*collide));
+    halo.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=halo;
+    ctx.beginPath();ctx.arc(cr.x,cr.y,rad*2.4,0,TAU);ctx.fill();
+    const grd=ctx.createRadialGradient(cr.x,cr.y,0,cr.x,cr.y,rad);
+    grd.addColorStop(0,rgba('#ffffff',0.98*m));
+    grd.addColorStop(0.34,rgba('#fff2dd',0.72*m));
+    grd.addColorStop(0.62,rgba(g[0].cfg.domain.accent,0.34*m));
+    grd.addColorStop(0.84,rgba(g[1%g.length].cfg.domain.accent,0.22*m));
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grd;
+    ctx.beginPath();ctx.arc(cr.x,cr.y,rad,0,TAU);ctx.fill();
+    // crisp containment ring hugging the sphere
+    ctx.strokeStyle=rgba('#ffffff',0.55*m*collide);
+    ctx.lineWidth=2.6;
+    ctx.beginPath();ctx.arc(cr.x,cr.y,rad*1.06,0,TAU);ctx.stroke();
+    for(let k=0;k<3;k++){
+      const a=t*1.45+k*TAU/3;
+      const x=cr.x+Math.cos(a)*rad*0.55, y=cr.y+Math.sin(a)*rad*0.26;
+      const col=g[k%g.length].cfg.domain.accent;
+      const lg=ctx.createRadialGradient(x,y,0,x,y,rad*0.46);
+      lg.addColorStop(0,rgba(col,0.36*m*collide));
+      lg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=lg;
+      ctx.beginPath();ctx.arc(x,y,rad*0.46,0,TAU);ctx.fill();
+    }
+    for(let i=0;i<3;i++){
+      const q=(t*0.8+i*0.34)%1;
+      const rr2=170+q*1250;
+      ctx.strokeStyle=rgba(i===1?'#ffffff':g[i%g.length].cfg.domain.accent,0.3*m*(1-q)*p2);
+      ctx.lineWidth=2+9*(1-q);
+      ctx.beginPath();ctx.arc(cr.x,cr.y,rr2,0,TAU);ctx.stroke();
+    }
+    // three equal containment rings turning in opposite directions: the clash
+    // is a deadlock, and the rings never settle into one colour
+    for(let k=0;k<3;k++){
+      const a0=t*(1.1+k*0.14)*(k%2?-1:1)+k*TAU/3;
+      ctx.strokeStyle=rgba(g[k%g.length].cfg.domain.accent,0.34*m*p3*collide);
+      ctx.lineWidth=2.4;
+      ctx.setLineDash([rad*0.9,rad*2.2]);
+      ctx.beginPath();ctx.arc(cr.x,cr.y,rad*(1.15+k*0.22),a0,a0+TAU*0.72);ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+}
+
+/* ---------- three-way collision: screen-space interference ---------- */
+function drawCinemaOverlay(){
+  const c=clash&&clash.cinema;
+  const core=cinemaCore();
+  if(!c||!core||c.t>=c.dur) return;
+  const t=c.t, g=core.group;
+  const mt=t-threeWay.manga;
+  if(mt<=0) return;
+  const p2=clamp((mt-1.2)/1.2,0,1);
+  const out=clamp((mt-4.0)/0.9,0,1);
+  const m=1-out;
+  const pr=project(CAM,VP,core.x,core.y,core.z);
+  const cx=pr?pr.x:W/2, cy=pr?pr.y:H*0.5;
+  ctx.save();
+  // three colour tears pulling out of the collision point
+  ctx.globalCompositeOperation='lighter';
+  for(let k=0;k<3;k++){
+    const col=g[k].cfg.domain.accent;
+    const a=t*2.4+k*TAU/3;
+    for(let i=0;i<3;i++){
+      const len=W*(0.3+0.28*Math.sin(t*1.7+i*2.1+k));
+      ctx.strokeStyle=rgba(col,0.1*m*p2*(0.5+0.5*Math.sin(t*11+i)));
+      ctx.lineWidth=1+2*Math.abs(Math.sin(t*6+i));
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.lineTo(cx+Math.cos(a+i*0.24)*len,cy+Math.sin(a+i*0.24)*len*0.55);
+      ctx.stroke();
+    }
+  }
+  // interference scan lines: the room refusing to settle
+  ctx.globalCompositeOperation='screen';
+  for(let i=0;i<26;i++){
+    const yy=((i/26)*H+t*60*(i%2?1:-1))%H;
+    const al=(0.012+0.02*Math.abs(Math.sin(t*3+i)))*m*p2;
+    ctx.fillStyle=rgba(i%3===0?'#ffffff':g[i%g.length].cfg.domain.accent,al);
+    ctx.fillRect(0,yy+Math.sin(t*4+i)*3,W,1.5+i%3);
+  }
+  // unstable rim: the three worlds pressing on the edges of the frame
+  const vg=ctx.createRadialGradient(cx,cy,H*0.28,cx,cy,H*0.95);
+  vg.addColorStop(0,'rgba(0,0,0,0)');
+  vg.addColorStop(0.7,rgba(g[0].cfg.domain.accent,0.05*m*p2));
+  vg.addColorStop(0.86,rgba(g[1%g.length].cfg.domain.accent,0.07*m*p2));
+  vg.addColorStop(0.95,rgba(g[2%g.length].cfg.domain.accent,0.09*m*p2));
+  vg.addColorStop(1,'rgba(2,4,10,0.72)');
+  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  ctx.restore();
+  // one restrained title, letter-spaced, only while the three worlds hold
+  const title=clamp(Math.min((mt-0.7)/0.7,(3.9-mt)/0.7),0,1);
+  if(title>0.01){
+    ctx.save();
+    ctx.globalAlpha=title*0.92;
+    ctx.textAlign='center';
+    ctx.fillStyle='#f2e2c0';
+    ctx.font='900 '+Math.round(Math.min(15,W/34))+'px Inter,system-ui,sans-serif';
+    if(ctx.letterSpacing!==undefined) ctx.letterSpacing='5px';
+    ctx.fillText('THREE-WAY DOMAIN CLASH',W/2,H*0.69);
+    ctx.globalAlpha=title*0.55;
+    ctx.fillStyle='#cfe0ee';
+    ctx.font='800 '+Math.round(Math.min(9,W/72))+'px Inter,system-ui,sans-serif';
+    if(ctx.letterSpacing!==undefined) ctx.letterSpacing='3px';
+    ctx.fillText('THREE DOMAINS · ONE COLLISION POINT',W/2,H*0.69+18);
+    ctx.restore();
+  }
+}
+/* ---------- three-way opening: manga triptych close-ups ---------- */
+function drawMangaClash(){
+  const c=clash&&clash.cinema, core=cinemaCore();
+  if(!c||!core) return;
+  const g=core.group, t=c.t, M=threeWay.manga;
+  const gut=Math.max(5,Math.round(W*0.01));
+  const pw=(W-gut*2)/3;
+  ctx.save();
+  ctx.fillStyle='#04050a';ctx.fillRect(0,0,W,H);
+  for(let i=0;i<3;i++){
+    const p=g[i]; if(!p) continue;
+    const rx=i*(pw+gut);
+    const rv=clamp((t-i*0.11)/0.4,0,1);
+    if(rv<=0.01) continue;
+    const z=Math.pow(clamp(t/M,0,1),0.82);
+    const punch=clamp((t-(M-0.3))/0.3,0,1);
+    // The panel is a tall strip, so its horizontal field is narrow: the lens
+    // has to sit well back for the head to fill the width without clipping.
+    const dist=lerp(182,128,z)-16*punch;
+    const S=p.cfg.scale||1, hy=p.y+170*S;
+    const ang=(p.face||0)+(i-1)*0.2;
+    const eye={x:p.x+Math.sin(ang)*dist, y:hy+4+Math.sin(t*2.4+i*2.2)*1.2, z:p.z+Math.cos(ang)*dist};
+    const vp={x:rx,y:0,w:pw,h:H,cx:rx+pw/2,cy:H/2,focal:(H/2)/Math.tan(0.45),fov:0.9};
+    vp.cam=makeCam(eye,{x:p.x+Math.sin(p.face||0)*6,y:hy-16,z:p.z+Math.cos(p.face||0)*6},0.9);
+    const ph=H*rv;
+    ctx.save();
+    ctx.beginPath();ctx.rect(rx,0,pw,ph);ctx.clip();
+    mangaView=true;renderScene(vp);mangaView=false;
+    const hpr=project(CAM,vp,p.x,hy,p.z);
+    const fx=hpr?hpr.x:vp.cx, fy=hpr?hpr.y:ph*0.42;
+    // ink falloff + domain backlight around the face
+    const dg=ctx.createRadialGradient(fx,fy,pw*0.06,fx,fy,pw*1.15);
+    dg.addColorStop(0,'rgba(4,6,14,0)');
+    dg.addColorStop(0.5,'rgba(4,6,14,0.24)');
+    dg.addColorStop(1,'rgba(4,6,14,0.88)');
+    ctx.fillStyle=dg;ctx.fillRect(rx,0,pw,ph);
+    ctx.globalCompositeOperation='lighter';
+    const ag=ctx.createRadialGradient(fx,fy,0,fx,fy,pw*0.62);
+    ag.addColorStop(0,rgba(p.cfg.domain.accent,0.30));
+    ag.addColorStop(0.6,rgba(p.cfg.domain.accent,0.10));
+    ag.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=ag;ctx.fillRect(rx,0,pw,ph);
+    ctx.globalCompositeOperation='source-over';
+    // a hard diagonal shadow across the jaw and a rim light on one edge
+    ctx.fillStyle='rgba(4,6,14,0.30)';
+    ctx.beginPath();ctx.moveTo(rx,ph*0.58);ctx.lineTo(rx+pw,ph*0.40);ctx.lineTo(rx+pw,ph);ctx.lineTo(rx,ph);ctx.closePath();ctx.fill();
+    const rim=ctx.createLinearGradient(rx,0,rx+pw,0);
+    rim.addColorStop(0,'rgba(0,0,0,0)');
+    rim.addColorStop(0.72,'rgba(0,0,0,0)');
+    rim.addColorStop(1,rgba(p.cfg.domain.accent,0.22));
+    ctx.fillStyle=rim;ctx.fillRect(rx,0,pw,ph);
+    ctx.globalCompositeOperation='source-over';
+    // open, shouting mouth: the activation beat the reference page is built on
+    const mo=project(CAM,vp,p.x+Math.sin(p.face||0)*11.2,hy-7,p.z+Math.cos(p.face||0)*11.2);
+    if(mo){
+      const mw=Math.max(6,pw*0.085), mh=Math.max(5,pw*0.062);
+      ctx.save();ctx.translate(mo.x,mo.y);
+      ctx.fillStyle='#08080e';
+      ctx.beginPath();ctx.ellipse(0,0,mw,mh,0,0,TAU);ctx.fill();
+      ctx.fillStyle='#3d1622';
+      ctx.beginPath();ctx.ellipse(0,mh*0.28,mw*0.60,mh*0.52,0,0,TAU);ctx.fill();
+      ctx.fillStyle='rgba(246,242,230,0.9)';
+      ctx.fillRect(-mw*0.66,-mh*0.86,mw*1.32,mh*0.26);
+      ctx.restore();
+    }
+    // radial ink lines give the panel its scream
+    for(let k=0;k<24;k++){
+      const a=k*TAU/24+Math.sin(k*4.3)*0.09+t*0.1;
+      const r0=pw*(0.30+((k*29)%30)/300), r1=pw*(1.0+((k*41)%50)/180);
+      ctx.strokeStyle='rgba(6,8,14,0.38)';ctx.lineWidth=1+(k%3);
+      ctx.beginPath();
+      ctx.moveTo(fx+Math.cos(a)*r0,fy+Math.sin(a)*r0*1.15);
+      ctx.lineTo(fx+Math.cos(a)*r1,fy+Math.sin(a)*r1*1.15);
+      ctx.stroke();
+    }
+    // halftone dots in the shadowed lower third
+    ctx.fillStyle='rgba(6,8,14,0.13)';
+    for(let yy=ph*0.66;yy<ph;yy+=10){
+      for(let xx=rx+5+((((yy/10)|0)%2)?4:0);xx<rx+pw;xx+=10){
+        const s2=(((yy/10)|0)%3)?1.6:2.4;
+        ctx.fillRect(xx,yy,s2,s2);
+      }
+    }
+    // name tab
+    ctx.fillStyle='rgba(4,6,12,0.72)';ctx.fillRect(rx+4,4,pw-8,15);
+    ctx.fillStyle=p.cfg.accent;ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.font='900 '+Math.max(7,Math.round(Math.min(9,pw/16)))+'px Inter,system-ui,sans-serif';
+    ctx.fillText('P'+(p.i+1)+' · '+p.cfg.short.toUpperCase(),rx+8,12);
+    // speech bubble, one per caster, like the reference page
+    const ba=clamp((t-0.92)/0.3,0,1);
+    if(ba>0.01){
+      const bw=pw*0.88, bh=Math.max(36,Math.min(56,ph*0.085));
+      const bx=rx+pw/2-bw/2, by=ph*0.74+(1-ba)*22;
+      ctx.save();
+      ctx.globalAlpha=ba;
+      ctx.translate(bx+bw/2,by+bh/2);ctx.rotate((i-1)*0.07);ctx.translate(-(bx+bw/2),-(by+bh/2));
+      ctx.strokeStyle='#08090f';ctx.lineWidth=2.2;ctx.fillStyle='#f7f3e6';
+      ctx.beginPath();
+      ctx.moveTo(bx+bw*0.32,by+bh*0.86);
+      ctx.lineTo(bx+bw*0.24,by+bh+16);
+      ctx.lineTo(bx+bw*0.46,by+bh*0.92);
+      ctx.closePath();ctx.fill();ctx.stroke();
+      rr(bx,by,bw,bh,bh*0.28);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#0a0b12';ctx.textAlign='center';ctx.textBaseline='middle';
+      const fs=Math.max(8,Math.round(Math.min(13,pw/13.5)));
+      ctx.font='900 '+fs+'px Inter,system-ui,sans-serif';
+      ctx.fillText('DOMAIN',bx+bw/2,by+bh*0.36);
+      ctx.fillText(i===1?'EXPANSION.':'EXPANSION!!!',bx+bw/2,by+bh*0.70);
+      ctx.restore();
+    }
+    ctx.textBaseline='alphabetic';
+    ctx.restore();
+    // panel frame
+    ctx.strokeStyle='#04050a';ctx.lineWidth=gut;ctx.strokeRect(rx-gut/2,0,pw+gut,ph);
+    ctx.strokeStyle=rgba(p.cfg.domain.accent,0.55);ctx.lineWidth=1.2;
+    ctx.strokeRect(rx+2,2,pw-4,ph-4);
+  }
+  // the triptych breaks into the arena on a white cut
+  const fl=clamp((t-(M-0.3))/0.3,0,1);
+  if(fl>0){ctx.fillStyle='rgba(255,255,255,'+(fl*0.92).toFixed(3)+')';ctx.fillRect(0,0,W,H)}
+  ctx.restore();
+  mangaView=false;
+}
 function drawTethers(vp){
   for(const p of players){
     if(!p.tetherT||p.tetherT<=0) continue;
@@ -2921,8 +3364,13 @@ function drawTethers(vp){
 }
 function drawDomainAmbience(vp){
   if(!domain) return;
-  const o=domain.owner, d=o.cfg.domain;
   const f=clamp(domain.intro>0?1-domain.intro/2.2:1,0,1);
+  drawDomainAura(vp,domain.owner,f);
+}
+// Same domain art, drawn for any caster: the three-way cutscene gives each of
+// the three worlds its own ambience instead of inventing a new design.
+function drawDomainAura(vp,o,f){
+  const d=o.cfg.domain;
   ctx.save();
   ctx.globalCompositeOperation='lighter';
   // innermost ring rotates with the Domain clock; Arashi gets a second
@@ -3000,21 +3448,27 @@ function renderScene(vp){
   ctx.globalAlpha=1;
 
   drawGround(vp,skyCols,floorCols,gridCol);
-  if(clash) drawClashField(vp);
+  // During the three-way cutscene the two-player seam is replaced by the
+  // three-way collision — a 2-way wall would read as somebody already winning.
+  if(clash&&!cinemaOn()) drawClashField(vp);
 
   emitGeo(dm?dm.geo:stage.geo);
   for(const p of players){ drawFighter(p); drawMirrors(p); }
 
   paintFaces(vp);
   drawGlows();
-  drawTethers(vp);
-  if(domain) drawDomainAmbience(vp);
-  if(clash) drawClashFX(vp);
-  drawMotes();
-  drawBursts();
-  drawProjectiles();
-  drawNames();
-  drawPopups();
+  // A manga panel is a clean close-up: no HUD clutter, names or popups.
+  if(!mangaView){
+    drawTethers(vp);
+    if(domain&&!cinemaOn()) drawDomainAmbience(vp);
+    if(clash&&!cinemaOn()) drawClashFX(vp);
+    if(clash&&clash.cinema) drawThreeWayCinema(vp);
+    drawMotes();
+    drawBursts();
+    drawProjectiles();
+    drawNames();
+    drawPopups();
+  }
 
   // atmospheric falloff at the edges of the pane keeps the eye on the fight
   const vg=ctx.createRadialGradient(vp.x+vp.w/2,vp.y+vp.h*0.54,vp.h*0.24,
@@ -3075,6 +3529,24 @@ function smoothedCam(vp,list,opts,key){
 }
 function solveCamera(vp,list,opts){
   opts=opts||{};
+  if(cinemaOn()){
+    // One slow, wide push around the collision point: all three casters and
+    // the core stay in frame, equal weight, no favourite.
+    const core=cinemaCore();
+    if(core){
+      const t=Math.max(0,clash.cinema.t-threeWay.manga), g=core.group;
+      let span=0;
+      for(let i=0;i<g.length;i++)for(let j=i+1;j<g.length;j++)
+        span=Math.max(span,Math.hypot(g[i].x-g[j].x,g[i].z-g[j].z));
+      const ramp=clamp(t/1.35,0,1);
+      const yaw=0.8+t*0.5;
+      const dist=lerp(520,clamp(760+span*0.52,880,1580),ramp);
+      const eye={x:core.x+Math.sin(yaw)*dist,
+        y:lerp(110,360,ramp)+Math.sin(t*1.35)*46,
+        z:core.z+Math.cos(yaw)*dist};
+      return makeCam(eye,{x:core.x,y:110,z:core.z},0.96);
+    }
+  }
   if(clash&&clash.ids.length){
     // slow orbit around the collision point: both barriers stay framed while
     // the seam visibly shoves back and forth with the damage war.
@@ -3288,7 +3760,9 @@ function drawHUD(layout){
 
   // clash scoreboard — an explicit tug-of-war for barrier dominance
   if(clash&&clash.intro<=0){
-    const cw=Math.min(480,W*0.72), cx=W/2-cw/2, cy=pad+70;
+    // In a three-fighter match P2's plate sits under the clock, so the meter
+    // drops below it instead of printing the panel over that nameplate.
+    const cw=Math.min(480,W*0.72), cx=W/2-cw/2, cy=pad+70+(players.length>2?96:0);
     const total=Math.max(1,clash.ids.reduce((s,id)=>s+(clash.score[id]||0),0));
     ctx.save();
     ctx.fillStyle='#0a0512ee';ctx.strokeStyle='#ff9ade99';
@@ -3310,21 +3784,37 @@ function drawHUD(layout){
       }
       bx+=w;
     }
-    ctx.strokeStyle='#ffffffcc';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(cx+cw/2,by-4);ctx.lineTo(cx+cw/2,by+bh+4);ctx.stroke();
-    let lx=cx+10;
-    for(const id of clash.ids){
-      const p=players[id];
+    const ids=clash.ids, nIds=ids.length, sum=ids.reduce((s,id)=>s+(clash.score[id]||0),0);
+    // One divider per boundary. The old code reused a single "right side"
+    // position for every player after the first, so three names were printed
+    // on top of each other.
+    ctx.strokeStyle='#ffffff55';ctx.lineWidth=1;
+    for(let k=1;k<nIds;k++){
+      const dx=bx0+bw*(k/nIds);
+      ctx.beginPath();ctx.moveTo(dx,by-4);ctx.lineTo(dx,by+bh+4);ctx.stroke();
+    }
+    if(nIds===2){
+      ctx.strokeStyle='#ffffffcc';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(cx+cw/2,by-4);ctx.lineTo(cx+cw/2,by+bh+4);ctx.stroke();
+    }
+    if(!sum){
+      // ghost shares keep all three domains visible before any damage lands
+      const gw=bw/nIds;
+      for(let k=0;k<nIds;k++){
+        ctx.fillStyle=rgba(players[ids[k]].cfg.accent,0.30);
+        rr(bx0+k*gw+1,by+1,gw-2,bh-2,3);ctx.fill();
+      }
+      ctx.fillStyle='#e7dcf5';ctx.font='900 7.5px Inter,system-ui,sans-serif';ctx.textAlign='center';
+      ctx.fillText('NO DAMAGE YET',W/2,by+14);
+    }
+    for(let k=0;k<nIds;k++){
+      const id=ids[k], p=players[id];
       const pc=Math.round(((clash.score[id]||0)/total)*100);
-      ctx.textAlign=lx<cx+cw/2?'left':'right';
+      const lx=nIds===2?(k===0?cx+10:cx+cw-10):(cx+10+(cw-20)*(k/(nIds-1)));
+      ctx.textAlign=nIds===2?(k===0?'left':'right'):(k===0?'left':k===nIds-1?'right':'center');
       ctx.fillStyle=p.cfg.accent;
       ctx.font='900 8px Inter,system-ui,sans-serif';
       ctx.fillText(p.cfg.short+' '+pc+'%',lx,cy+57);
-      lx=cx+cw-10;
-    }
-    if(!clash.ids.reduce((s,id)=>s+(clash.score[id]||0),0)){
-      ctx.fillStyle='#dcc6ef';ctx.font='900 8px Inter,system-ui,sans-serif';ctx.textAlign='center';
-      ctx.fillText('NO DAMAGE YET · BOTH BARRIERS HOLD',W/2,cy+57);
     }
     ctx.restore();
   }
@@ -3809,7 +4299,8 @@ function netSnapshot(){
     domain:domain?{t:domain.type,o:domain.owner.i,time:+domain.time.toFixed(2),total:domain.total,
       intro:+domain.intro.toFixed(2),win:+domain.window.toFixed(2)}:null,
     clash:clash?{ids:clash.ids,score:clash.score,time:+clash.time.toFixed(2),total:clash.total,
-      intro:+clash.intro.toFixed(2)}:null
+      intro:+clash.intro.toFixed(2)}:null,
+    cinema:clash&&clash.cinema?{t:+clash.cinema.t.toFixed(2),dur:clash.cinema.dur,ids:clash.cinema.ids}:null
   };
 }
 function netPush(){
@@ -3851,6 +4342,9 @@ function netApply(s){
     intro:s.domain.intro,window:s.domain.win,started:0,tick:0,wager:null,locked:true}:null;
   clash=s.clash?{ids:s.clash.ids,score:s.clash.score,time:s.clash.time,total:s.clash.total||8.5,
     intro:s.clash.intro}:null;
+  // The host decides when the three-way cutscene runs; guests replay it from
+  // the snapshot clock so every screen shows the same beat at the same time.
+  if(clash&&s.cinema) clash.cinema={t:s.cinema.t,dur:s.cinema.dur||threeWay.dur,ids:s.cinema.ids||clash.ids};
   if(s.over){
     phase='menu'; page='result'; winner=typeof s.w==='number'?s.w:-1;
     net.active=false; renderMenu();
@@ -3882,6 +4376,7 @@ function netTick(dt){
   }
   if(domain&&domain.intro>0) domain.intro=Math.max(0,domain.intro-dt);
   if(clash){ clash.intro=Math.max(0,clash.intro-dt); clash.time=Math.max(0,clash.time-dt) }
+  if(clash&&clash.cinema) clash.cinema.t=Math.min(clash.cinema.dur,clash.cinema.t+dt);
   for(let i=bursts.length-1;i>=0;i--){ bursts[i].life-=dt; if(bursts[i].life<=0) bursts.splice(i,1) }
   for(let i=popups.length-1;i>=0;i--){ const q=popups[i]; q.life-=dt; q.y+=34*dt; if(q.life<=0) popups.splice(i,1) }
   for(let i=motes.length-1;i>=0;i--){ const m=motes[i]; m.life-=dt; if(m.life<=0) motes.splice(i,1) }
@@ -3892,6 +4387,9 @@ function onlineHTML(){
   let body='';
   if(!net.room){
     body='<div class="netform">'+
+      '<label>ROOM SIZE — HOSTING</label><div class="selmode" style="margin:2px 0 6px">'+
+      '<button type="button" data-net="size" data-size="2" class="'+(net.mode===2?'on':'')+'">2 FIGHTERS</button>'+
+      '<button type="button" data-net="size" data-size="3" class="'+(net.mode===3?'on':'')+'">3 FIGHTERS</button></div>'+
       '<label>DISPLAY NAME</label><input id="netName" maxlength="22" value="'+escHTML(net.name||'Sorcerer')+'" autocomplete="off">'+
       '<label>ROOM CODE — JOINING</label><input id="netCode" maxlength="6" placeholder="ABC123" autocomplete="off">'+
       '<div class="selactions" style="margin-top:6px">'+
@@ -3938,6 +4436,7 @@ function netAction(t){
     const next=(((mine?mine.character:pick[0])+1)%ROSTER.length);
     netPost('/api/character',netSession({character:next})).then(()=>renderMenu());
   }
+  else if(a==='size'){ net.mode=t.dataset.size==='3'?3:2; renderMenu() }
   else if(a==='leave') netLeave();
   else if(a==='back'){ netReset(); setPage('title') }
 }
@@ -3997,6 +4496,8 @@ function renderPreview(){
 function render(){
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.clearRect(0,0,W,H);
+  // the permanent control hint would sit on top of the manga panels
+  if(tipEl) tipEl.style.opacity=cinemaOn()?'0':'';
 
   if(phase!=='fight'){
     renderPreview();
@@ -4006,6 +4507,11 @@ function render(){
   if(shake>0.4){
     ctx.save();
     ctx.translate((Math.random()-0.5)*shake,(Math.random()-0.5)*shake);
+  }
+  if(cinemaManga()){
+    drawMangaClash();
+    if(shake>0.4) ctx.restore();
+    return;
   }
   const list=alive().length?alive():players;
   const sep=spread();
@@ -4058,18 +4564,21 @@ function render(){
     for(const pn of layout) ctx.strokeRect(pn.x+0.5,pn.y+0.5,pn.w-1,pn.h-1);
     ctx.restore();
   }
+  if(clash&&clash.cinema) drawCinemaOverlay();
   if(shake>0.4) ctx.restore();
 
   layoutCount=layout.length;
   drawHUD(layout);
   if(domain&&domain.type===0&&!clash) drawWager();
 
-  ctx.save();
-  ctx.font='900 9px Inter,system-ui,sans-serif';
-  ctx.fillStyle='#6fd4ff';ctx.textAlign='right';ctx.textBaseline='alphabetic';
-  const where=domain?('DOMAIN · '+domain.owner.cfg.domain.name):ARENAS[arenaIdx].name;
-  ctx.fillText((layout.length>1?'SPLIT CAMERA':'SHARED CAMERA')+' · '+where,W-14,H-118);
-  ctx.restore();
+  if(!cinemaOn()){
+    ctx.save();
+    ctx.font='900 9px Inter,system-ui,sans-serif';
+    ctx.fillStyle='#6fd4ff';ctx.textAlign='right';ctx.textBaseline='alphabetic';
+    const where=domain?('DOMAIN · '+domain.owner.cfg.domain.name):ARENAS[arenaIdx].name;
+    ctx.fillText((layout.length>1?'SPLIT CAMERA':'SHARED CAMERA')+' · '+where,W-14,H-118);
+    ctx.restore();
+  }
 }
 
 /* ============================================================
