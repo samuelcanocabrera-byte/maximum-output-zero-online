@@ -10,7 +10,7 @@ const PORT = Number(process.env.PORT || 3000);
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const rooms = new Map();
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const actions = new Set(['left','right','up','down','attack','skill','guard','cycle','super','domain','rct','dash','emote']);
+const actions = new Set(['left','right','up','down','jump','attack','skill','guard','cycle','super','domain','rct','dash','emote']);
 const key = () => randomBytes(24).toString('hex');
 function code(){let c;do{c=Array.from({length:6},()=>alphabet[randomInt(alphabet.length)]).join('')}while(rooms.has(c));return c}
 const json = (res, status, object) => {res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Access-Control-Allow-Origin':'*'});res.end(JSON.stringify(object))};
@@ -111,6 +111,12 @@ async function api(req,res,url){
    res.writeHead(200,{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-cache, no-transform','Connection':'keep-alive','X-Accel-Buffering':'no','Access-Control-Allow-Origin':'*'});
    res.write(': connected\n\n');m.stream=res;r.seen=Date.now();emit(res,'lobby',roomView(r));
    res.on('close',()=>disconnectStream(r,i,res));publishLobby(r);return;
+  }
+  if(req.method==='GET'&&(url.pathname==='/3d'||url.pathname==='/3d-camera')){
+    const file=url.pathname==='/3d'?'3d-arena.html':'3d-spike.html';
+    try{const html=await readFile(path.join(DIR,'public',file));
+      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});return res.end(html)
+    }catch{return no(res,'Page not found',404)}
   }
   if(req.method==='GET'&&(url.pathname==='/'||url.pathname==='/index.html')){
     const html=await readFile(path.join(DIR,'public','index.html'));
