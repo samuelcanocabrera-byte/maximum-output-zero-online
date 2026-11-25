@@ -1300,7 +1300,7 @@ const projectiles=[];
 const bursts=[];
 const popups=[];
 const motes=[];
-let domain=null, clash=null;
+let domain=null, clash=null, verdict=null;
 let ann={top:'',bot:'',col:'#eaf6ff',t:0};
 let hitStop=0, shake=0, flash=0, camKick=0;
 let comboOwner=-1, comboCount=0, comboT=0, comboDmg=0;
@@ -1335,9 +1335,9 @@ function makePlayer(i,kind){
     phase:0,ko:false,koT:0,domainTime:0,simpleT:0,simpleCd:0,
     burn:0,ultT:0,ultLock:0,armorT:0,club:0,
     cardIdx:0,cardT:0,club:0,jokers:2,cardCd:{},clones:0,cloneT:0,tri:8000,siphons:10,sealed:0,queuedSeal:0,slowLock:0,queuedSlow:0,zephyrT:0,
-    overdriveT:0,ultPose:0,castType:'',castT:0,mirrors:[],mirrorT:0,snapshot:null,
+    overdriveT:0,burnout:0,ultPose:0,castType:'',castT:0,mirrors:[],mirrorT:0,snapshot:null,
     resistT:0,extraArmT:0,vectorBarrierT:0,stormT:0,stormTick:0,sharpenT:0,anchorT:0,windGuardT:0,ceRegenBlock:0,tetherT:0,tetherFrom:-1,
-    ghosts:[],emote:'',emoteT:0,healLock:0,slow:1,domainCastAt:-1,domainUsed:false,
+    ghosts:[],emote:'',emoteT:0,healLock:0,slow:1,domainCastAt:-1,
     comboT:0,comboHits:0,dmgDone:0
   };
 }
@@ -1345,7 +1345,7 @@ function makePlayer(i,kind){
 function spawn(){
   players.length=0;
   projectiles.length=0; bursts.length=0; popups.length=0; motes.length=0;
-  domain=null; clash=null; hitStop=0; shake=0; flash=0; camKick=0;
+  domain=null; clash=null; verdict=null; hitStop=0; shake=0; flash=0; camKick=0;
   ann={top:'',bot:'',col:'#eaf6ff',t:0};
   clock=150; winner=-1; paused=false;
   resetCameraSmooth();
@@ -1453,6 +1453,7 @@ function dmgMul(p){
   let m=p.cfg.dmg;
   if(p.kind===1) m*=1+p.mom/200*0.45;
   if(p.overdriveT>0) m*=1.18;
+  if((p.burnout||0)>0) m*=0.72;
   if(p.domainTime>0) m*=1.25;
   if(p.burn>0) m*=0.9;
   return m;
@@ -2029,16 +2030,11 @@ function wagerStakes3D(){
 }
 function expandDomain(p){
   if(p.ko||p.stun>0) return;
-  // One Domain per fighter per match: once a Domain has been expanded it is
-  // spent, so nobody can open a second one or re-run the activation.
-  if(p.domainUsed){
-    popupAt(p.x,p.y+172,p.z,'DOMAIN ALREADY EXPANDED','#f4c1df',11);
-    return;
-  }
-  // A decided clash spends the awakening it was fought with. The winning
-  // Domain keeps playing, but neither fighter can open a fresh one on top.
+  // A decided clash seals every Domain that fought in it until the surviving
+  // barrier is gone: you cannot answer a clash with another Domain on the
+  // frame it ends. After that the bar is simply your Awakening again.
   if((p.domainLock||0)>0){
-    popupAt(p.x,p.y+172,p.z,'DOMAIN SEALED · CLASH SETTLED','#f4c1df',11);
+    popupAt(p.x,p.y+172,p.z,'DOMAIN RECOVERING · AWAKENING SPENT','#f4c1df',11);
     return;
   }
   // one Domain object per caster per activation: a repeat press during the
@@ -2056,7 +2052,9 @@ function expandDomain(p){
   }
   sfx('domain');
   const life=domainLife3D(p.kind);
-  p.aw=0; p.ce-=35; p.domainTime=life; p.domainCastAt=time; p.domainUsed=true;
+  // Opening a Domain empties both meters: Awakening and cursed energy have to
+  // be earned back before another expansion is even possible.
+  p.aw=0; p.ce=0; p.domainTime=life; p.domainCastAt=time;
   domain={owner:p,type:p.kind,time:life,total:life,intro:2.2,window:2.7,tick:0,started:0,
     wager:{step:0,stakeIdx:0,phase:'choose',timer:0,spin:0,win:null,stake:null,results:[]},stakes:wagerStakes3D()};
   shake=Math.max(shake,16); flash=0.55; camKick=1;
@@ -2071,10 +2069,17 @@ function joinClash(p){
   }
   if(clash&&clash.ids.includes(p.i)) return;
   if(clash&&clash.time<2.4) return;
-  p.aw-=35; p.ce-=28; p.domainCastAt=time; p.domainUsed=true;
+  p.aw-=35; p.ce-=28; p.domainCastAt=time;
   if(!clash){
     clash={ids:[domain.owner.i,p.i],score:{},time:8.5,total:8.5,intro:1.4};
     clash.score[domain.owner.i]=0; clash.score[p.i]=0;
+    // A two-fighter clash opens on one manga page: two close-ups, the blade of
+    // light between them and the hands of the Domain sign in front.
+    if(players.length===2){
+      clash.cinema={t:0,dur:duel.manga,ids:[domain.owner.i,p.i]};
+      clash.intro=Math.min(clash.intro,0.9);
+      sfx('domain');
+    }
   }else{
     clash.ids.push(p.i); clash.score[p.i]=0;
   }
@@ -2090,6 +2095,8 @@ function joinClash(p){
    presentation only: the clash scores, clash.time and endClash() still decide
    the outcome, and a two-fighter clash can never enter this path. */
 const threeWay={window:1.6,manga:2.0,dur:6.9};
+// The two-fighter clash gets the single-page manga beat from the reference.
+const duel={manga:2.0};
 function maybeThreeWayClash(){
   if(!clash||clash.cinema||clash.ids.length<3||players.length<3) return;
   if(!domain||!domain.owner||domain.owner.ko) return;
@@ -2133,6 +2140,27 @@ function endClash(){
   let best=-1,bs=-1;
   for(const id of clash.ids){ if((clash.score[id]||0)>bs){bs=clash.score[id]||0;best=id} }
   const winner=players[best];
+  // Two barriers can cancel: if the damage is level (or the lead is inside the
+  // noise) neither world takes the field. No Domain opens, the original barrier
+  // collapses, and every caster is left in burnout.
+  {
+    const rank=[...clash.ids].sort((x,y)=>(clash.score[y]||0)-(clash.score[x]||0));
+    const top=clash.score[rank[0]]||0, second=rank.length>1?(clash.score[rank[1]]||0):0;
+    const decided=rank.length>1 && top>0 && (top-second)>=Math.max(4,top*0.10);
+    if(!decided){
+      const ids=[...clash.ids];
+      clash=null; domain=null; verdict=null; projectiles.length=0;
+      shake=Math.max(shake,26); flash=0.6;
+      for(const id of ids){
+        const p=players[id]; if(!p||p.ko) continue;
+        p.aw=0; p.ce=0; p.burnout=2.9; p.domainTime=0; p.overdriveT=0;
+        p.stun=Math.max(p.stun,0.75); p.domainLock=Math.max(p.domainLock||0,7);
+        popupAt(p.x,p.y+150,p.z,'BURN OUT','#ffc2c2',14);
+      }
+      announce('NO DOMAIN','BOTH BARRIERS CANCEL · CASTERS BURN OUT','#ffd6cc',2.7);
+      return;
+    }
+  }
   for(const id of clash.ids){
     if(id===best) continue;
     const t=players[id];
@@ -2161,12 +2189,13 @@ function endClash(){
     domain.time=Math.max(domain.time,6.5);
     domain.locked=true;
   }
-  // Awakening is spent by resolving the clash; the winning Domain is already
-  // on the field, so there is nothing left to expand with.
+  // A settled clash costs every participant both meters, winner included: the
+  // losing side has to climb back to 100 Awakening before it can answer, and
+  // the seal below keeps anyone from re-expanding while the barrier stands.
   const lockTime=domain?Math.max(4,domain.time+1.5):6;
   for(const id of clash.ids){
     const p=players[id]; if(!p) continue;
-    p.aw=0;
+    p.aw=0; p.ce=0;
     p.domainLock=Math.max(p.domainLock||0,lockTime);
     p.domainTime=p.i===best&&domain?(domain.time):0;
   }
@@ -2174,6 +2203,9 @@ function endClash(){
     winner?winner.cfg.accent:'#fff',2.4);
   if(domain&&winner&&domain.owner===winner) announce('DOMAIN EXPANSION',winner.cfg.domain.name,winner.cfg.accent,2.2);
   shake=Math.max(shake,18); flash=0.5;
+  // Two-fighter clashes end on a pairing-specific verdict card, so Jin vs
+  // Arata and Jin vs Shirogane never resolve the same way.
+  if(clash.ids.length===2) spawnVerdict(clash.ids.map(i=>players[i]).filter(Boolean),best);
   clash=null;
 }
 
@@ -2280,6 +2312,7 @@ function update(dt){
   comboT=Math.max(0,comboT-dt);
   if(comboT<=0) for(const p of players) p.comboHits=0;
   if(ann.t>0) ann.t-=dt;
+  if(verdict){ verdict.t+=dt; if(verdict.t>=verdict.dur) verdict=null }
 
   // Three-way cutscene: hold the whole simulation while the domains collide.
   // No timer, cooldown, score or HP changes during the beat, so the clash
@@ -2287,6 +2320,15 @@ function update(dt){
   if(cinemaOn()){
     const c=clash.cinema;
     c.t+=dt;
+    // Two-fighter page: no collision core, no three-way flashes — just the
+    // manga beat, then a white cut straight into the clash.
+    if(c.ids.length<3){
+      if(!c.mangaDone&&c.t>=c.dur){ c.mangaDone=1; flash=0.85; shake=Math.max(shake,22); sfx('domain') }
+      shake=Math.max(shake,3+Math.abs(Math.sin(c.t*6.4))*6);
+      pressed.clear();
+      for(const s of net.pressed) s.clear();
+      return;
+    }
     if(!c.mangaDone&&c.t>=threeWay.manga){ c.mangaDone=1; flash=0.9; shake=Math.max(shake,26); sfx('domain') }
     if(!c.flashed&&c.t>=threeWay.manga+1.3){ c.flashed=1; flash=0.9; shake=Math.max(shake,24); sfx('domain') }
     shake=Math.max(shake,3.2+Math.abs(Math.sin(c.t*7.5))*7.5);
@@ -2455,8 +2497,9 @@ function update(dt){
     if(p.tetherT>0) p.domainSlow=Math.max(p.domainSlow||0,0.80);
     p.sealed=Math.max(0,(p.sealed||0)-dt); p.slowLock=Math.max(0,(p.slowLock||0)-dt); p.zephyrT=Math.max(0,(p.zephyrT||0)-dt);
     p.domainLock=Math.max(0,(p.domainLock||0)-dt);
+    p.burnout=Math.max(0,(p.burnout||0)-dt);
     if(p.ceRegenBlock>0) p.ceRegenBlock=Math.max(0,p.ceRegenBlock-dt);
-    else p.ce=Math.min(100,p.ce+dt*(p.domainTime>0?15:p.cfg.regen));
+    else p.ce=Math.min(100,p.ce+dt*(p.burnout>0?0.35:1)*(p.domainTime>0?15:p.cfg.regen));
     if(p.kind===1&&p.domainTime<=0){ p.mom=Math.max(0,p.mom-dt*1.4) }
     p.vx*=Math.exp(-1.55*dt); p.vz*=Math.exp(-1.55*dt);
     for(let i=p.ghosts.length-1;i>=0;i--){ p.ghosts[i].life-=dt; if(p.ghosts[i].life<=0)p.ghosts.splice(i,1) }
@@ -2521,7 +2564,7 @@ function update(dt){
 /* ============================================================
    RENDER — geometry pass, painter's algorithm
    ============================================================ */
-let CAM=null, VP=null, layoutCount=0, mangaView=false;
+let CAM=null, VP=null, layoutCount=0, mangaView=false, duelSolo=null;
 
 function paintFaces(vp){
   const fog=parseRGB(FOG_COL);
@@ -2822,6 +2865,29 @@ function drawNames(){
   }
 }
 
+// mid-point of two hex colours; alpha is dropped (callers re-apply it).
+function mixHex(a,b,t){
+  const A=parseRGB(a), B=parseRGB(b), k=clamp(t,0,1);
+  const c=[0,1,2].map(i=>Math.round(A[i]+(B[i]-A[i])*k));
+  return '#'+c.map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+// While two Domains are locked in a clash neither world wins: sky, floor and
+// grid are the halfway point between the two barriers, and the seam repaints
+// each side in its caster's own colours.
+function clashPalette(){
+  if(!clash||!clash.ids||clash.ids.length<2) return null;
+  const A=players[clash.ids[0]], B=players[clash.ids[1]];
+  if(!A||!B||!A.cfg.domain||!B.cfg.domain) return null;
+  const da=A.cfg.domain, db=B.cfg.domain;
+  return {
+    // the sky melts from the first world at the top into the second at the
+    // horizon; each side of the seam is then washed in its own barrier's light
+    sky:[da.sky[0], mixHex(da.sky[1],db.sky[1],0.5), db.sky[2]],
+    floor:[da.floor[0], db.floor[1]],
+    grid:mixHex(da.grid.slice(0,7),db.grid.slice(0,7),0.5)+'66',
+    A:da, B:db
+  };
+}
 function rgba(hex,a){
   const c=parseRGB(hex);
   return 'rgba('+c[0]+','+c[1]+','+c[2]+','+clamp(a,0,1)+')';
@@ -2890,10 +2956,10 @@ function drawClashField(vp){
     ctx.globalCompositeOperation='lighter';
     ctx.beginPath();ctx.moveTo(e1.x,e1.y);ctx.lineTo(e2.x,e2.y);
     ctx.lineTo(e2.x+n.x,e2.y+n.y);ctx.lineTo(e1.x+n.x,e1.y+n.y);ctx.closePath();
-    ctx.fillStyle=rgba(cs.a.cfg.accent,0.17*f);ctx.fill();
+    ctx.fillStyle=rgba(cs.a.cfg.domain.sky[2],0.46*f);ctx.fill();
     ctx.beginPath();ctx.moveTo(e1.x,e1.y);ctx.lineTo(e2.x,e2.y);
     ctx.lineTo(e2.x-n.x,e2.y-n.y);ctx.lineTo(e1.x-n.x,e1.y-n.y);ctx.closePath();
-    ctx.fillStyle=rgba(cs.b.cfg.accent,0.17*f);ctx.fill();
+    ctx.fillStyle=rgba(cs.b.cfg.domain.sky[1],0.24*f);ctx.fill();
     ctx.restore();
   }
   // competing domain sigils burn into the floor around each caster — a third
@@ -2902,9 +2968,10 @@ function drawClashField(vp){
     const p=players[id]; if(!p) continue;
     const d=p.cfg.domain;
     const pulse=0.5+0.5*Math.sin(time*2.4+p.i);
-    worldRing(vp,p.x,p.z,300,d.accent,0.20*f*pulse,3,[14,10]);
-    worldRing(vp,p.x,p.z,430,d.accent,0.12*f*(1-pulse*0.4),2,[4,16]);
-    worldRing(vp,p.x,p.z,150,d.accent,0.28*f,2);
+    const lc=d.sky[1];
+    worldRing(vp,p.x,p.z,300,lc,0.26*f*pulse,3,[14,10]);
+    worldRing(vp,p.x,p.z,430,lc,0.16*f*(1-pulse*0.4),2,[4,16]);
+    worldRing(vp,p.x,p.z,150,lc,0.34*f,2);
   }
   // vertical barrier sheets fighting along the seam
   const L=1700, cols=20;
@@ -3342,6 +3409,325 @@ function drawMangaClash(){
   ctx.restore();
   mangaView=false;
 }
+/* ---------- two-way clash: one inked page ---------- */
+// The reference is line art, not a render: white paper, one hard black
+// diagonal, two inked portraits cropped by it, the hands of the Domain sign
+// over the seam and stone crumbs in the air. Only the eyes keep their colour.
+function duelPortrait(p,cx,cy,s,dir){
+  const ink='#0d0d12', paper='#f8f5ee';
+  const hair=p.cfg.hair||'#161d30';
+  const hc=hair.replace('#','');
+  const light=(parseInt(hc.slice(0,2),16)*0.299+parseInt(hc.slice(2,4),16)*0.587+parseInt(hc.slice(4,6),16)*0.114)>140;
+  const eyeCol=p.cfg.eyes||'#9fd8ff';
+  const lw=0.022;
+  ctx.save();
+  ctx.translate(cx,cy);ctx.scale(dir<0?-s:s,s);
+  ctx.lineJoin='round';ctx.lineCap='round';
+  // shoulders and high collar
+  ctx.beginPath();
+  ctx.moveTo(-0.80,1.00);ctx.quadraticCurveTo(-0.72,0.52,-0.34,0.44);
+  ctx.lineTo(0.34,0.44);ctx.quadraticCurveTo(0.72,0.52,0.80,1.00);
+  ctx.closePath();
+  ctx.fillStyle='#111116';ctx.fill();
+  // neck
+  ctx.beginPath();
+  ctx.moveTo(-0.16,0.28);ctx.lineTo(0.16,0.28);ctx.lineTo(0.19,0.58);ctx.lineTo(-0.19,0.58);ctx.closePath();
+  ctx.fillStyle=paper;ctx.fill();ctx.strokeStyle=ink;ctx.lineWidth=lw;ctx.stroke();
+  // back hair silhouette
+  const hairFill=light?paper:'#0e0e13';
+  ctx.beginPath();
+  ctx.moveTo(-0.46,0.24);
+  ctx.lineTo(-0.52,-0.10);ctx.lineTo(-0.42,-0.30);ctx.lineTo(-0.50,-0.46);
+  ctx.lineTo(-0.32,-0.40);ctx.lineTo(-0.36,-0.60);ctx.lineTo(-0.16,-0.50);
+  ctx.lineTo(-0.12,-0.70);ctx.lineTo(0.02,-0.54);ctx.lineTo(0.10,-0.72);
+  ctx.lineTo(0.20,-0.52);ctx.lineTo(0.36,-0.62);ctx.lineTo(0.32,-0.40);
+  ctx.lineTo(0.48,-0.46);ctx.lineTo(0.38,-0.24);ctx.lineTo(0.50,-0.04);
+  ctx.lineTo(0.42,0.24);
+  ctx.closePath();
+  ctx.fillStyle=hairFill;ctx.fill();ctx.strokeStyle=ink;ctx.lineWidth=lw*1.25;ctx.stroke();
+  // face
+  ctx.beginPath();
+  ctx.moveTo(-0.32,-0.16);
+  ctx.quadraticCurveTo(-0.34,-0.40,-0.10,-0.46);
+  ctx.quadraticCurveTo(0.14,-0.52,0.30,-0.34);
+  ctx.quadraticCurveTo(0.36,-0.16,0.31,0.04);
+  ctx.quadraticCurveTo(0.27,0.30,0.05,0.46);
+  ctx.quadraticCurveTo(-0.10,0.52,-0.22,0.36);
+  ctx.quadraticCurveTo(-0.33,0.18,-0.32,-0.16);
+  ctx.closePath();
+  ctx.fillStyle=paper;ctx.fill();ctx.strokeStyle=ink;ctx.lineWidth=lw;ctx.stroke();
+  // ear
+  ctx.beginPath();ctx.moveTo(-0.30,-0.02);
+  ctx.quadraticCurveTo(-0.45,-0.06,-0.41,0.14);
+  ctx.quadraticCurveTo(-0.37,0.24,-0.28,0.18);ctx.closePath();
+  ctx.fillStyle=paper;ctx.fill();ctx.strokeStyle=ink;ctx.lineWidth=lw*0.9;ctx.stroke();
+  // bangs over the forehead
+  ctx.beginPath();
+  ctx.moveTo(-0.34,-0.20);ctx.lineTo(-0.24,-0.44);ctx.lineTo(-0.14,-0.22);
+  ctx.lineTo(-0.02,-0.50);ctx.lineTo(0.08,-0.24);ctx.lineTo(0.20,-0.46);
+  ctx.lineTo(0.31,-0.18);
+  ctx.closePath();
+  ctx.fillStyle=hairFill;ctx.fill();ctx.strokeStyle=ink;ctx.lineWidth=lw;ctx.stroke();
+  // brows
+  for(const sx of [-1,1]){
+    ctx.beginPath();ctx.moveTo(sx*0.06,-0.15);ctx.lineTo(sx*0.29,-0.21);
+    ctx.lineWidth=0.050;ctx.strokeStyle=ink;ctx.stroke();
+  }
+  // eyes: the only colour on the page
+  for(const sx of [-1,1]){
+    const ex=sx*0.17, ey=0.0, w2=0.098, h2=0.060;
+    ctx.beginPath();
+    ctx.moveTo(ex-w2*0.92,ey+h2*0.10);
+    ctx.quadraticCurveTo(ex-w2*0.20,ey-h2*1.75,ex+w2,ey-h2*0.35);
+    ctx.lineTo(ex+w2*0.86,ey+h2*0.55);
+    ctx.quadraticCurveTo(ex,ey+h2*1.05,ex-w2*0.92,ey+h2*0.10);
+    ctx.closePath();
+    ctx.fillStyle=paper;ctx.fill();ctx.strokeStyle=ink;ctx.lineWidth=0.016;ctx.stroke();
+    ctx.save();ctx.beginPath();ctx.ellipse(ex,ey-h2*0.05,w2*0.66,h2*0.92,0,0,TAU);ctx.clip();
+    ctx.fillStyle=eyeCol;ctx.fillRect(ex-w2,ey-h2*2,w2*2,h2*4);
+    ctx.fillStyle='#0b0b10';ctx.beginPath();ctx.arc(ex,ey,w2*0.30,0,TAU);ctx.fill();
+    ctx.fillStyle=paper;ctx.beginPath();ctx.arc(ex-w2*0.22,ey-h2*0.45,w2*0.19,0,TAU);ctx.fill();
+    ctx.restore();
+    // heavy upper lash and a sharp outer tick
+    ctx.beginPath();ctx.moveTo(ex-w2*0.92,ey+h2*0.10);
+    ctx.quadraticCurveTo(ex-w2*0.20,ey-h2*1.75,ex+w2,ey-h2*0.35);
+    ctx.lineWidth=0.030;ctx.strokeStyle=ink;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ex-w2*0.92,ey+h2*0.10);ctx.lineTo(ex-w2*1.18,ey-h2*0.30);
+    ctx.lineWidth=0.018;ctx.stroke();
+  }
+  // nose
+  ctx.beginPath();ctx.moveTo(0.02,0.10);ctx.quadraticCurveTo(0.08,0.17,0.02,0.20);
+  ctx.lineWidth=0.020;ctx.strokeStyle=ink;ctx.stroke();
+  // smirking mouth
+  ctx.beginPath();ctx.moveTo(-0.14,0.31);ctx.quadraticCurveTo(0.00,0.37,0.17,0.28);
+  ctx.lineWidth=0.026;ctx.strokeStyle=ink;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-0.06,0.35);ctx.quadraticCurveTo(0.03,0.395,0.11,0.345);
+  ctx.lineWidth=0.011;ctx.stroke();
+  // cheek creases and jaw hatching
+  ctx.strokeStyle='rgba(13,13,18,0.55)';ctx.lineWidth=0.011;
+  for(let i=0;i<3;i++){
+    ctx.beginPath();ctx.moveTo(-0.24+i*0.035,0.30);ctx.lineTo(-0.30+i*0.035,0.40);ctx.stroke();
+  }
+  // strands, so light hair still reads as hair on white paper
+  if(light){
+    ctx.strokeStyle=ink;ctx.lineWidth=0.011;
+    ctx.beginPath();ctx.moveTo(-0.30,-0.36);ctx.lineTo(-0.10,-0.52);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-0.06,-0.42);ctx.lineTo(0.10,-0.56);ctx.stroke();
+  }
+  ctx.restore();
+}
+function duelPanel(p,cx,cy,poly,size,dir){
+  ctx.save();
+  ctx.beginPath();
+  poly.forEach(([x,y],k)=>k?ctx.lineTo(x,y):ctx.moveTo(x,y));
+  ctx.closePath();ctx.clip();
+  duelPortrait(p,cx,cy,size,dir);
+  ctx.restore();
+}
+// stone crumbs floating through the panel
+function duelDebris(t){
+  let sd=2267;
+  const rnd=()=>{ sd=(sd*16807)%2147483647; return sd/2147483647 };
+  for(let i=0;i<15;i++){
+    const px=rnd()*W, py0=rnd()*H, sp=0.5+rnd()*0.9, s=3+rnd()*9;
+    const py=py0-((t*20*sp+i*53)%(H*0.34));
+    ctx.save();
+    ctx.translate(px,py);ctx.rotate(rnd()*TAU+t*0.15*sp);
+    ctx.beginPath();
+    for(let k=0;k<5;k++){
+      const a=k/5*TAU, r=s*(0.62+((k*37+i*11)%30)/70);
+      const x=Math.cos(a)*r, y=Math.sin(a)*r*0.8;
+      k?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    }
+    ctx.closePath();
+    ctx.fillStyle='#fbf9f2';ctx.fill();
+    ctx.strokeStyle='#111116';ctx.lineWidth=1.2;ctx.stroke();
+    ctx.strokeStyle='rgba(17,17,22,0.45)';ctx.lineWidth=0.8;
+    ctx.beginPath();ctx.moveTo(-s*0.4,-s*0.2);ctx.lineTo(s*0.3,s*0.12);ctx.stroke();
+    ctx.restore();
+  }
+}
+// ez runs 0 -> 1 across the back half of the beat: the lens tightens on the
+// eyes (focal, not a dolly, so the camera never clips inside the head) and the
+// eye line stays pinned to the middle of the panel the whole way.
+function duelFaceVp(p,cx,cy,z,size,ez){
+  ez=clamp(ez||0,0,1);
+  const face=(p.face||0);
+  const J=fighterParts(p,face);
+  const E=J.P(J.head.x,J.head.y+1,J.head.z+11.2);   // the eyes, in world space
+  // focal already scales with the canvas, so a fixed stand-off keeps the head
+  // at a little over half the frame on any window shape.
+  const dist=clamp(180*(0.94-0.12*ez)*(1-0.14*z),90,700);
+  const side=(p.i%2)?1:-1;
+  const ang=face+side*0.05;   // dead in front of the face, a hair off-axis
+  const eye={x:E.x+Math.sin(ang)*dist, y:E.y+dist*0.015, z:E.z+Math.cos(ang)*dist};
+  const vp={x:0,y:0,w:W,h:H,cx:0,cy:0,focal:((H/2)/Math.tan(0.44))*(1+1.15*ez),fov:0.88};
+  vp.cam=makeCam(eye,{x:E.x,y:E.y,z:E.z},0.88);
+  const hp=project(vp.cam,vp,E.x,E.y,E.z);
+  if(hp){ vp.cx=cx-hp.x; vp.cy=cy-hp.y }
+  vp.focus=p;
+  return vp;
+}
+// one half of the page: the fighter in close-up, burning in their own colour
+function duelModelPanel(p,cx,cy,poly,size,z,ez){
+  const vp=duelFaceVp(p,cx,cy,z,size,ez);
+  const ac=p.cfg.accent, ac2=(p.cfg.domain&&p.cfg.domain.sky&&p.cfg.domain.sky[1])||ac;
+  ctx.save();
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  ctx.beginPath();
+  poly.forEach(([x,y],k)=>k?ctx.lineTo(x,y):ctx.moveTo(x,y));
+  ctx.closePath();ctx.clip();
+  const R=Math.max(W,H)*0.9;
+  const g=ctx.createRadialGradient(cx,cy-H*0.06,0,cx,cy-H*0.06,R);
+  g.addColorStop(0,rgba(ac,0.98));
+  g.addColorStop(0.20,rgba(ac,0.78));
+  g.addColorStop(0.46,rgba(ac2,0.55));
+  g.addColorStop(0.74,rgba(ac,0.20));
+  g.addColorStop(1,'rgba(4,4,10,0.96)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  for(let i=0;i<9;i++){
+    const a=-0.9+i*0.34+Math.sin(i*2.7)*0.2;
+    const r0=size*0.35, r1=size*(1.2+((i*29)%40)/40);
+    ctx.strokeStyle=rgba(i%2?ac:'#ffffff',0.10+0.06*((i*7)%3));
+    ctx.lineWidth=2+(i%4)*2.2;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*r0,cy+Math.sin(a)*r0);
+    ctx.lineTo(cx+Math.cos(a+0.10)*r1,cy+Math.sin(a+0.10)*r1);
+    ctx.stroke();
+  }
+  duelSolo=p;renderScene(vp);duelSolo=null;
+  ctx.globalCompositeOperation='multiply';
+  ctx.fillStyle='rgba(20,10,30,0.20)';ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='lighter';
+  const lg=ctx.createRadialGradient(cx,cy,size*0.18,cx,cy,size*1.05);
+  lg.addColorStop(0,'rgba(0,0,0,0)');
+  lg.addColorStop(0.55,rgba(ac,0.22));
+  lg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=lg;ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='source-over';
+  ctx.restore();
+}
+function duelBubble(t){
+  const ap=clamp((t-0.8)/0.28,0,1);
+  if(ap<=0.01) return;
+  const w=Math.min(W*0.36,320), h=w*0.34;
+  const x=W-w-W*0.045, y=H-h-H*0.075+(1-ap)*26;
+  ctx.save();
+  ctx.globalAlpha=ap;
+  ctx.fillStyle='#06060a';
+  // tail pointing back at the caster
+  ctx.beginPath();
+  ctx.moveTo(x+w*0.26,y+h*0.34);
+  ctx.lineTo(x+w*0.02,y-h*0.34);
+  ctx.lineTo(x+w*0.42,y+h*0.10);
+  ctx.closePath();ctx.fill();
+  rr(x,y,w,h,6);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.22)';ctx.lineWidth=1.4;
+  rr(x,y,w,h,6);ctx.stroke();
+  ctx.fillStyle='#f7f3ea';ctx.textAlign='center';ctx.textBaseline='middle';
+  const fs=Math.round(w*0.088);
+  ctx.font='italic 900 '+fs+'px Inter,system-ui,sans-serif';
+  ctx.fillText('DOMAIN',x+w/2,y+h*0.34);
+  ctx.fillText('EXPANSION',x+w/2,y+h*0.70);
+  ctx.restore();
+}
+function drawDuelClash(){
+  const c=clash&&clash.cinema;
+  if(!c||c.ids.length!==2) return;
+  const a=players[c.ids[0]], b=players[c.ids[1]];
+  if(!a||!b) return;
+  const t=c.t, D=c.dur||duel.manga;
+  const z=clamp(t/D,0,1);
+  const fade=clamp(t/0.26,0,1);
+  const cut=clamp((t-(D-0.24))/0.24,0,1);
+  const y0=H*0.02, y1=H*0.72, bw=Math.max(9,H*0.024);
+  const yy=x=>y0+(y1-y0)*(x/W);
+  const x0=-90, x1=W+90;
+  const polyB=[[x0,-90],[x1,-90],[x1,yy(x1)-bw/2],[x0,yy(x0)-bw/2]];
+  const polyA=[[x0,yy(x0)+bw/2],[x1,yy(x1)+bw/2],[x1,H+90],[x0,H+90]];
+  const szB=Math.min(H*0.50,W*0.34), szA=Math.min(H*0.52,W*0.36);
+  ctx.save();
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  ctx.fillStyle='#05040a';ctx.fillRect(0,0,W,H);
+  ctx.translate(W/2,H/2);ctx.scale(1.03+0.04*z,1.03+0.04*z);ctx.translate(-W/2,-H/2);
+  const ez=clamp((z-0.38)/0.46,0,1);
+  const ease=ez*ez*(3-2*ez);
+  duelModelPanel(b,W*0.68,H*0.31,polyB,szB,z,ease);
+  duelModelPanel(a,W*0.31,H*0.68,polyA,szA,z,ease);
+  // the hard diagonal that cuts the page in two
+  ctx.fillStyle='#07060b';
+  ctx.beginPath();
+  ctx.moveTo(x0,yy(x0)-bw/2);ctx.lineTo(x1,yy(x1)-bw/2);
+  ctx.lineTo(x1,yy(x1)+bw/2);ctx.lineTo(x0,yy(x0)+bw/2);ctx.closePath();ctx.fill();
+  duelBubble(t);
+  duelDebris(t);
+  const lab=(p,right,bottom)=>{
+    ctx.save();
+    ctx.font='800 '+Math.max(8,Math.round(Math.min(10,W/130)))+'px Inter,system-ui,sans-serif';
+    if(ctx.letterSpacing!==undefined) ctx.letterSpacing='2px';
+    ctx.textAlign=right?'right':'left';ctx.textBaseline=bottom?'bottom':'top';
+    ctx.fillStyle='rgba(246,242,232,0.72)';
+    ctx.fillText('P'+(p.i+1)+' · '+p.cfg.short.toUpperCase(),right?W-10:10,bottom?H-8:8);
+    ctx.restore();
+  };
+  lab(a,false,true);lab(b,true,false);
+  ctx.restore();
+  if(cut>0){ ctx.fillStyle='rgba(255,255,255,'+(cut*0.96).toFixed(3)+')'; ctx.fillRect(0,0,W,H) }
+  if(fade<1){ ctx.fillStyle='rgba(8,6,14,'+(1-fade).toFixed(3)+')'; ctx.fillRect(0,0,W,H) }
+}
+
+/* ---------- pairing verdict ---------- */
+// Three fighters, three possible two-way clashes; each ends on its own line.
+const PAIR_LINES={'01':'FORTUNE OUTRUNS THE HORIZON','02':'FORTUNE SHUFFLES THE KALEIDOSCOPE',
+  '12':'THE HORIZON REFRACTS THE KALEIDOSCOPE'};
+function spawnVerdict(list,best){
+  if(!list||list.length!==2) return;
+  const w=list.find(p=>p&&p.i===best), l=list.find(p=>p&&p.i!==best);
+  if(!w||!l) return;
+  const key=[w.kind,l.kind].sort((x,y)=>x-y).join('');
+  verdict={t:0,dur:2.7,w:w.i,l:l.i,line:PAIR_LINES[key]||'TWO DOMAINS · ONE SURVIVOR'};
+  // the card is the announcement: no banner or damage popups on top of it
+  ann.t=0; popups.length=0;
+}
+function drawVerdict(){
+  if(!verdict) return;
+  const w=players[verdict.w], l=players[verdict.l];
+  if(!w||!l) return;
+  const t=verdict.t, D=verdict.dur;
+  const inA=clamp(t/0.24,0,1), out=clamp((t-(D-0.42))/0.42,0,1);
+  const al=(1-out)*inA;
+  if(al<=0.01) return;
+  ctx.save();
+  ctx.globalAlpha=al;
+  ctx.fillStyle='rgba(3,5,11,0.58)';ctx.fillRect(0,0,W,H);
+  const bh=Math.min(Math.max(H*0.30,150),250), by=H*0.5-bh/2+(1-inA)*H*0.05;
+  ctx.fillStyle='rgba(6,8,16,0.93)';ctx.fillRect(0,by,W,bh);
+  ctx.fillStyle=rgba(w.cfg.accent,0.95);ctx.fillRect(0,by,W,4);
+  ctx.fillStyle=rgba(l.cfg.accent,0.85);ctx.fillRect(0,by+bh-4,W,4);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  const maxW=W*0.88;
+  const setFont=(size,weight)=>{ctx.font=(weight||900)+' '+Math.round(size)+'px Inter,system-ui,sans-serif'};
+  const fit=(txt,size)=>{ let s2=size; setFont(s2); while(s2>11&&ctx.measureText(txt).width>maxW){ s2-=1; setFont(s2) } return s2 };
+  const kick='P'+(w.i+1)+' '+w.cfg.short.toUpperCase()+' TAKES THE BARRIER';
+  ctx.fillStyle=w.cfg.accent;
+  setFont(Math.min(15,Math.max(9,W/78)),800);
+  if(ctx.letterSpacing!==undefined) ctx.letterSpacing='3px';
+  ctx.fillText(kick,W/2,by+bh*0.24);
+  if(ctx.letterSpacing!==undefined) ctx.letterSpacing='0px';
+  ctx.fillStyle='#f4ecd8';
+  const ts=fit(w.cfg.domain.name,Math.min(H*0.052,44));
+  setFont(ts);
+  ctx.fillText(w.cfg.domain.name,W/2,by+bh*0.46);
+  ctx.fillStyle='rgba(214,224,238,0.86)';
+  setFont(Math.min(18,Math.max(11,W/62)),800);
+  ctx.fillText('SHATTERS '+l.cfg.domain.name,W/2,by+bh*0.63);
+  ctx.fillStyle=rgba(w.cfg.accent,0.95);
+  setFont(Math.min(14,Math.max(9,W/80)),900);
+  if(ctx.letterSpacing!==undefined) ctx.letterSpacing='2px';
+  ctx.fillText(verdict.line,W/2,by+bh*0.80);
+  ctx.restore();
+}
+
 function drawTethers(vp){
   for(const p of players){
     if(!p.tetherT||p.tetherT<=0) continue;
@@ -3430,14 +3816,23 @@ function renderScene(vp){
   FACES=[]; GLOWS=[];
 
   const stage=ARENAS[arenaIdx];
+  const cp=clashPalette();
   const dm=domain?domain.owner.cfg.domain:null;
-  const skyCols=dm?dm.sky:stage.sky;
-  const floorCols=dm?dm.floor:stage.floor;
-  const gridCol=dm?dm.grid:stage.grid;
+  const skyCols=cp?cp.sky:(dm?dm.sky:stage.sky);
+  const floorCols=cp?cp.floor:(dm?dm.floor:stage.floor);
+  const gridCol=cp?cp.grid:(dm?dm.grid:stage.grid);
   FOG_COL=skyCols[2];
 
   ctx.save();
   ctx.beginPath();ctx.rect(vp.x,vp.y,vp.w,vp.h);ctx.clip();
+
+  // Duel close-up: no arena, just the fighter over the aura the caller painted
+  if(duelSolo){
+    drawFighter(duelSolo);drawMirrors(duelSolo);
+    paintFaces(vp);drawGlows();
+    ctx.restore();
+    return;
+  }
 
   const sky=ctx.createLinearGradient(0,vp.y,0,vp.y+vp.h*0.78);
   sky.addColorStop(0,skyCols[0]);sky.addColorStop(0.55,skyCols[1]);sky.addColorStop(1,skyCols[2]);
@@ -3452,7 +3847,15 @@ function renderScene(vp){
   // three-way collision — a 2-way wall would read as somebody already winning.
   if(clash&&!cinemaOn()) drawClashField(vp);
 
-  emitGeo(dm?dm.geo:stage.geo);
+  // A clash has no single world yet: every caster's Domain is still standing,
+  // so both sets of props (trees and rain across mirrors and violet pillars)
+  // occupy the same ground until one barrier collapses.
+  if(clash&&clash.ids&&clash.ids.length>=2){
+    for(const id of clash.ids){
+      const q=players[id];
+      if(q&&q.cfg.domain&&q.cfg.domain.geo) emitGeo(q.cfg.domain.geo);
+    }
+  }else emitGeo(dm?dm.geo:stage.geo);
   for(const p of players){ drawFighter(p); drawMirrors(p); }
 
   paintFaces(vp);
@@ -3460,7 +3863,10 @@ function renderScene(vp){
   // A manga panel is a clean close-up: no HUD clutter, names or popups.
   if(!mangaView){
     drawTethers(vp);
-    if(domain&&!cinemaOn()) drawDomainAmbience(vp);
+    if(clash&&!cinemaOn()&&clash.ids.length>=2){
+      // each barrier still projects its own light while the clash is live
+      for(const id of clash.ids){ const q=players[id]; if(q&&!q.ko) drawDomainAura(vp,q,0.55) }
+    }else if(domain&&!cinemaOn()) drawDomainAmbience(vp);
     if(clash&&!cinemaOn()) drawClashFX(vp);
     if(clash&&clash.cinema) drawThreeWayCinema(vp);
     drawMotes();
@@ -4316,6 +4722,7 @@ function netHostTick(dt){
 }
 function netApply(s){
   if(!s||!Array.isArray(s.players)) return;
+  const prevClash=clash;
   net.lastSnap=performance.now();
   if(typeof s.t==='number') clock=s.t;
   for(const sp of s.players){
@@ -4345,6 +4752,13 @@ function netApply(s){
   // The host decides when the three-way cutscene runs; guests replay it from
   // the snapshot clock so every screen shows the same beat at the same time.
   if(clash&&s.cinema) clash.cinema={t:s.cinema.t,dur:s.cinema.dur||threeWay.dur,ids:s.cinema.ids||clash.ids};
+  // The host resolves the clash; the guest reads the same scores on the frame
+  // the clash leaves the snapshot and shows the identical verdict card.
+  if(!s.clash&&prevClash&&prevClash.ids&&prevClash.ids.length===2&&!s.over){
+    let best=-1,bs=-1;
+    for(const id of prevClash.ids){ if((prevClash.score[id]||0)>bs){bs=prevClash.score[id]||0;best=id} }
+    spawnVerdict(prevClash.ids.map(i=>players[i]).filter(Boolean),best);
+  }
   if(s.over){
     phase='menu'; page='result'; winner=typeof s.w==='number'?s.w:-1;
     net.active=false; renderMenu();
@@ -4509,7 +4923,9 @@ function render(){
     ctx.translate((Math.random()-0.5)*shake,(Math.random()-0.5)*shake);
   }
   if(cinemaManga()){
-    drawMangaClash();
+    // Two fighters get the single-page spread; three keep the triptych.
+    if(clash.cinema&&clash.cinema.ids.length<3) drawDuelClash();
+    else drawMangaClash();
     if(shake>0.4) ctx.restore();
     return;
   }
@@ -4569,6 +4985,7 @@ function render(){
 
   layoutCount=layout.length;
   drawHUD(layout);
+  drawVerdict();
   if(domain&&domain.type===0&&!clash) drawWager();
 
   if(!cinemaOn()){
